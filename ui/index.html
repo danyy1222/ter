@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Asphalt-TEG Simulator</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --border: #21262d;
+      --border-2: #30363d;
+      --text: #ffffff;
+      --muted: #8b949e;
+      --accent: #ffb300;
+      --accent-2: #ff6d00;
+      --good: #69f0ae;
+      --sky-night: #020408;
+      --sky-dawn: #1a0a00;
+      --sky-day: #0d1a2a;
+      --day-gradient: linear-gradient(to top, #ff6d00, #ffb300);
+      --night-gradient: linear-gradient(to top, #1a3a6a, #2a4a8a);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    .root {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      background: var(--bg);
+      border-radius: 16px;
+    }
+
+    .root-spacer {
+      height: 0;
+      overflow: hidden;
+    }
+
+    .app,
+    .main-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 52px 1fr 190px;
+      gap: 14px;
+      padding: 18px;
+      align-items: stretch;
+    }
+
+    .time-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 0;
+    }
+
+    .current-hour {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .t-track {
+      flex: 1;
+      width: 18px;
+      position: relative;
+      background: #161b22;
+      border: 1px solid var(--border-2);
+      border-radius: 6px;
+      overflow: hidden;
+      min-height: 100%;
+    }
+
+    .track-fill {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 0%;
+      background: var(--day-gradient);
+      transition: height 0.35s ease, background 0.35s ease;
+    }
+
+    .track-fill.night {
+      background: var(--night-gradient);
+    }
+
+    .marker {
+      position: absolute;
+      left: 50%;
+      bottom: 0%;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      box-shadow: 0 0 8px #ffb30099;
+      border: 2px solid rgba(255,255,255,0.35);
+      transition: bottom 0.4s ease;
+      z-index: 2;
+    }
+
+    .tick {
+      position: absolute;
+      left: 24px;
+      transform: translateY(50%);
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .tick::before {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: 50%;
+      width: 6px;
+      height: 1px;
+      background: var(--border-2);
+      transform: translateY(-50%);
+    }
+
+    .tick.tick-6 { bottom: 25%; }
+    .tick.tick-12 { bottom: 50%; }
+    .tick.tick-18 { bottom: 75%; }
+
+    .center-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(250px, 0.85fr);
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 10px;
+      min-width: 0;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      text-transform: uppercase;
+      grid-column: 1 / -1;
+    }
+
+    .sky {
+      grid-column: 1 / -1;
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sky-shell {
+      position: relative;
+      flex: 1;
+      min-height: 160px;
+      background: var(--sky-night);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: background 1s ease;
+    }
+
+    .status {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 11px;
+      z-index: 10;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef5350;
+      box-shadow: 0 0 10px rgba(239, 83, 80, 0.4);
+    }
+
+    .status.connected .status-dot {
+      background: #22c55e;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.45);
+    }
+
+    .status.connected .status-text {
+      color: #c7f9d4;
+    }
+
+    .sky-badge {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      transform: translateX(-50%);
+      z-index: 9;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,179,0,0.35);
+      font-size: 11px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .night-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    .sky-inner {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .sun {
+      position: absolute;
+      width: 78px;
+      height: 78px;
+      object-fit: contain;
+      z-index: 3;
+      filter: drop-shadow(0 0 10px #ffb30088);
+      transition: left 0.5s, bottom 0.5s, opacity 0.4s;
+      pointer-events: none;
+    }
+
+    .sun.hidden { opacity: 0; }
+
+    .asphalt {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 88px;
+      object-fit: cover;
+      opacity: 0.9;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .cobre {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(92%, 900px);
+      height: auto;
+      max-height: 126px;
+      object-fit: contain;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .info-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .info-card,
+    .formula-box,
+    .stat-card,
+    .mini-card,
+    .chart-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .info-card {
+      padding: 7px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .info-value {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      grid-column: 1 / -1;
+      grid-row: 3;
+    }
+
+    .slider-label {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .formula-box {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 0;
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .formula-title {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .formula-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .formula-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .formula-exp {
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+      color: #b0bac6;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .formula-sub {
+      font-family: "Courier New", monospace;
+      font-size: 12px;
+      color: #b0bac6;
+      margin-top: 2px;
+    }
+
+    .formula-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .right {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+      min-height: 0;
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .stat-card {
+      padding: 12px 12px 10px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      justify-content: flex-start;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .stat-value .number {
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--accent);
+      transition: color 0.25s ease;
+    }
+
+    .stat-value .unit {
+      color: var(--accent-2);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .progress {
+      height: 7px;
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+
+    .mini-grid {
+      display: none;
+    }
+
+    .mini-card {
+      padding: 7px 9px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .mini-key {
+      color: var(--muted);
+    }
+
+    .mini-val {
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .mini-card:nth-child(1) .mini-val { color: var(--accent); }
+    .mini-card:nth-child(2) .mini-val { color: var(--good); }
+    .mini-card:nth-child(3) .mini-val { color: var(--accent-2); }
+    .mini-card:nth-child(4) .mini-val { color: #b0bac6; }
+
+    .chart-box {
+      padding: 10px 10px 6px;
+      min-height: 210px;
+    }
+
+    .chart-title {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    #powerChart {
+      height: 55px;
+      width: 100%;
+      display: block;
+    }
+
+    .micro {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    @media (max-width: 980px) {
+      html, body { overflow: auto; }
+      .app {
+        height: auto;
+        min-height: 100%;
+        grid-template-columns: 1fr;
+      }
+      .time-col {
+        min-height: 140px;
+      }
+      .t-track {
+        width: 100%;
+        min-height: 120px;
+      }
+      .tick {
+        left: auto;
+        right: 8px;
+      }
+      .tick::before {
+        left: auto;
+        right: 100%;
+        margin-right: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="root">
+    <div class="root-spacer" aria-hidden="true"></div>
+    <div class="app">
+      <aside class="time-col">
+        <div class="current-hour" id="currentHourText">12.0h</div>
+        <div class="t-track" id="track">
+          <div class="track-fill" id="trackFill"></div>
+          <div class="marker" id="marker"></div>
+          <div class="tick tick-6">6h</div>
+          <div class="tick tick-12">12h</div>
+          <div class="tick tick-18">18h</div>
+        </div>
+      </aside>
+
+      <section class="center-col">
+        <div class="eyebrow">⚡ SIMULADOR ASPHALT-TEG</div>
+
+        <div class="sky">
+          <div class="sky-shell" id="skyShell">
+            <div class="status" id="backendStatus">
+              <span class="status-dot"></span>
+              <span class="status-text" id="backendStatusText">Modo offline</span>
+            </div>
+            <div class="sky-badge" id="phaseBadge">Fase: Noche — Sol: 0.0 h</div>
+            <canvas class="night-canvas" id="nightCanvas" width="900" height="180"></canvas>
+            <div class="sky-inner" id="skyInner">
+              <img class="sun hidden" id="solImg" alt="Sol" />
+              <img class="cobre" id="cobreImg" alt="Cobre" />
+              <img class="asphalt" id="asfaltoImg" alt="Asfalto" />
+            </div>
+          </div>
+        </div>
+
+        <div class="formula-box">
+          <div class="formula-title">FÓRMULAS APLICADAS</div>
+          <div class="formula-list" id="formulaList"></div>
+        </div>
+      </section>
+
+      <aside class="right">
+        <div class="stat-card">
+          <div class="stat-label">ELECTRICIDAD OBTENIDA</div>
+          <div class="stat-value">
+            <div class="number" id="powerBig">0.00</div>
+            <div class="unit">mW</div>
+          </div>
+          <div class="progress"></div>
+          <div class="info-row">
+            <div class="info-card">
+              <div class="info-label">Horas de sol</div>
+              <div class="info-value" id="sunHours">0.00</div>
+            </div>
+            <div class="info-card">
+              <div class="info-label">Fase</div>
+              <div class="info-value" id="phaseText">Noche</div>
+            </div>
+            <div class="info-card">
+              <div class="info-label">Eficiencia η</div>
+              <div class="info-value" id="efficiencyText">0.00%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mini-grid">
+          <div class="mini-card">
+            <span class="mini-key">Voltaje TEG</span>
+            <span class="mini-val" id="voltageMini">0.00 V</span>
+          </div>
+          <div class="mini-card">
+            <span class="mini-key">Corriente I</span>
+            <span class="mini-val" id="currentMini">0.000 A</span>
+          </div>
+          <div class="mini-card">
+            <span class="mini-key">ΔT asfalto</span>
+            <span class="mini-val" id="deltaTMini">0.00 °C</span>
+          </div>
+          <div class="mini-card">
+            <span class="mini-key">Flujo calor q</span>
+            <span class="mini-val" id="heatMini">0.00 W</span>
+          </div>
+        </div>
+
+        <div class="chart-box">
+          <div class="chart-title">Curva del día</div>
+          <canvas id="powerChart" width="420" height="55"></canvas>
+        </div>
+
+        <div class="slider-wrap">
+          <div class="slider-label">Hora</div>
+          <input id="timeSlider" type="range" min="0" max="24" step="0.1" value="12" />
+          <div class="slider-label" id="sliderValue">12.0h</div>
+        </div>
+
+        <div class="micro" id="microCopy">Backend listo para recibir cálculo en tiempo real.</div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const BACKEND = "http://localhost:8000";
+    const tablaTemp = [
+      { h: 10, T_asf: 46.5 },
+      { h: 11, T_asf: 52.5 },
+      { h: 12, T_asf: 58.5 },
+      { h: 13, T_asf: 61.5 },
+      { h: 14, T_asf: 59.5 },
+      { h: 15, T_asf: 55.5 },
+      { h: 16, T_asf: 50.5 },
+    ];
+
+    const state = {
+      connected: false,
+      daySeries: [],
+      currentHour: 12,
+      pulseAlt: false,
+      currentData: null,
+    };
+
+    const els = {
+      track: document.getElementById("track"),
+      trackFill: document.getElementById("trackFill"),
+      marker: document.getElementById("marker"),
+      currentHourText: document.getElementById("currentHourText"),
+      timeSlider: document.getElementById("timeSlider"),
+      sliderValue: document.getElementById("sliderValue"),
+      phaseBadge: document.getElementById("phaseBadge"),
+      phaseText: document.getElementById("phaseText"),
+      sunHours: document.getElementById("sunHours"),
+      efficiencyText: document.getElementById("efficiencyText"),
+      powerBig: document.getElementById("powerBig"),
+      voltageMini: document.getElementById("voltageMini"),
+      currentMini: document.getElementById("currentMini"),
+      deltaTMini: document.getElementById("deltaTMini"),
+      heatMini: document.getElementById("heatMini"),
+      formulaList: document.getElementById("formulaList"),
+      backendStatus: document.getElementById("backendStatus"),
+      backendStatusText: document.getElementById("backendStatusText"),
+      skyShell: document.getElementById("skyShell"),
+      sun: document.getElementById("solImg"),
+      cobre: document.getElementById("cobreImg"),
+      asfalto: document.getElementById("asfaltoImg"),
+      nightCanvas: document.getElementById("nightCanvas"),
+      powerChart: document.getElementById("powerChart"),
+      microCopy: document.getElementById("microCopy"),
+    };
+
+    const ctxNight = els.nightCanvas.getContext("2d");
+    const ctxChart = els.powerChart.getContext("2d");
+
+    function clamp(v, min, max) {
+      return Math.min(max, Math.max(min, v));
+    }
+
+    function fmt2(v) {
+      return Number(v || 0).toFixed(2);
+    }
+
+    function fmt3(v) {
+      return Number(v || 0).toFixed(3);
+    }
+
+    function interpolateTh(hour) {
+      if (hour < 10 || hour > 19) return 0;
+      if (hour <= 16) {
+        for (let i = 0; i < tablaTemp.length - 1; i += 1) {
+          const a = tablaTemp[i];
+          const b = tablaTemp[i + 1];
+          if (hour >= a.h && hour <= b.h) {
+            const t = (hour - a.h) / (b.h - a.h);
+            return a.T_asf + (b.T_asf - a.T_asf) * t;
+          }
+        }
+        return tablaTemp[tablaTemp.length - 1].T_asf;
+      }
+      const last = tablaTemp[tablaTemp.length - 1];
+      const prev = tablaTemp[tablaTemp.length - 2];
+      return last.T_asf + (last.T_asf - prev.T_asf) * (hour - 16);
+    }
+
+    function dayMeta(hour) {
+      if (hour < 10 || hour > 19) {
+        return { active: false, phase: "Noche", sunHours: 0 };
+      }
+      if (hour < 7 || hour >= 19) {
+        return { active: false, phase: "Noche", sunHours: 0 };
+      }
+      if (hour < 8 || hour > 17) {
+        return { active: true, phase: "Amanecer/Atardecer", sunHours: clamp(hour - 6, 0, 12) };
+      }
+      return { active: true, phase: "Día", sunHours: clamp(hour - 6, 0, 12) };
+    }
+
+    function fixImagePaths() {
+      const tries = ["./assets/", "./ui/assets/", "assets/", "../assets/"];
+      const imgs = [
+        { el: els.sun, name: "sol" },
+        { el: els.cobre, name: "cobre" },
+        { el: els.asfalto, name: "asfalto" },
+      ];
+      imgs.forEach(({ el, name }) => {
+        if (!el) return;
+        let i = 0;
+        el.onerror = () => {
+          i += 1;
+          if (i < tries.length) {
+            el.src = `${tries[i]}${name}.png`;
+          }
+        };
+        el.src = `${tries[0]}${name}.png`;
+      });
+    }
+
+    function setBackendStatus(connected) {
+      state.connected = connected;
+      els.backendStatus.classList.toggle("connected", connected);
+      els.backendStatusText.textContent = connected ? "Backend conectado" : "Modo offline";
+      els.microCopy.textContent = connected
+        ? "Backend FastAPI conectado y sincronizado."
+        : "Backend no disponible, usando cálculo local.";
+    }
+
+    function updateSky(hour) {
+      const meta = dayMeta(hour);
+      const skyShell = els.skyShell.getBoundingClientRect();
+      const skyW = skyShell.width;
+      const skyH = skyShell.height;
+      const arcPct = clamp((hour - 6) / 12, 0, 1);
+      els.sunHours.textContent = fmt2(meta.sunHours);
+      els.phaseText.textContent = meta.phase;
+      els.phaseBadge.textContent = `Fase: ${meta.phase} — Sol: ${fmt2(meta.sunHours)} h`;
+      els.trackFill.classList.toggle("night", !meta.active);
+      els.trackFill.style.height = `${clamp((hour / 24) * 100, 0, 100)}%`;
+      els.marker.style.bottom = `${clamp((hour / 24) * 100, 0, 100)}%`;
+      els.currentHourText.textContent = `${hour.toFixed(1)}h`;
+      els.sliderValue.textContent = `${hour.toFixed(1)}h`;
+
+      if (!meta.active) {
+        els.skyShell.style.background = "var(--sky-night)";
+        els.sun.classList.add("hidden");
+        drawNightSky(hour);
+        return;
+      }
+
+      els.skyShell.style.background = hour < 8 || hour > 17 ? "var(--sky-dawn)" : "var(--sky-day)";
+      els.sun.classList.remove("hidden");
+      els.nightCanvas.style.opacity = 0;
+      const sunX = (skyW - 58) * arcPct;
+      const sunY = skyH - 58 - skyH * 0.68 * Math.sin(Math.PI * arcPct) - 18;
+      els.sun.style.left = `${sunX}px`;
+      els.sun.style.bottom = `${Math.max(14, skyH - sunY - 58)}px`;
+    }
+
+    function drawNightSky(hour) {
+      const rect = els.nightCanvas.getBoundingClientRect();
+      ctxNight.clearRect(0, 0, rect.width, rect.height);
+      const meta = dayMeta(hour);
+      if (meta.active) {
+        els.nightCanvas.style.opacity = 0;
+        return;
+      }
+      els.nightCanvas.style.opacity = 1;
+      ctxNight.fillStyle = "#020408";
+      ctxNight.fillRect(0, 0, rect.width, rect.height);
+      ctxNight.fillStyle = "rgba(255,255,255,0.8)";
+      for (let i = 0; i < 55; i += 1) {
+        const x = (i * 67 + 23) % rect.width;
+        const y = (i * 41 + 17) % (rect.height - 30);
+        const r = (i % 3) + 0.8;
+        ctxNight.globalAlpha = 0.45 + ((i % 5) * 0.08);
+        ctxNight.beginPath();
+        ctxNight.arc(x, y, r, 0, Math.PI * 2);
+        ctxNight.fill();
+      }
+      ctxNight.globalAlpha = 1;
+      ctxNight.fillStyle = "#f8f8f8";
+      ctxNight.beginPath();
+      ctxNight.arc(rect.width - 52, 44, 16, 0, Math.PI * 2);
+      ctxNight.fill();
+      ctxNight.fillStyle = "#020408";
+      ctxNight.beginPath();
+      ctxNight.arc(rect.width - 45, 41, 14, 0, Math.PI * 2);
+      ctxNight.fill();
+    }
+
+    function drawChart() {
+      const rect = els.powerChart.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      ctxChart.clearRect(0, 0, width, height);
+      if (!state.daySeries.length) return;
+
+      const values = state.daySeries.map((item) => item.power_mW);
+      const maxValue = Math.max(1, ...values);
+      const minValue = Math.min(...values);
+      const padX = 10;
+      const padY = 10;
+      const minHour = state.daySeries[0].hour;
+      const maxHour = state.daySeries[state.daySeries.length - 1].hour;
+      const spanHour = maxHour - minHour || 1;
+      const xStep = (width - padX * 2) / (state.daySeries.length - 1 || 1);
+
+      ctxChart.save();
+      ctxChart.strokeStyle = "rgba(255,179,0,0.1)";
+      ctxChart.lineWidth = 1;
+      [0.25, 0.5, 0.75].forEach((pct) => {
+        const y = padY + (height - padY * 2) * pct;
+        ctxChart.beginPath();
+        ctxChart.moveTo(padX, y);
+        ctxChart.lineTo(width - padX, y);
+        ctxChart.stroke();
+      });
+      ctxChart.restore();
+
+      const points = state.daySeries.map((item, index) => ({
+        x: padX + index * xStep,
+        y: height - padY - ((item.power_mW - minValue) / (maxValue - minValue || 1)) * (height - padY * 2),
+      }));
+
+      ctxChart.strokeStyle = "#ff6d00";
+      ctxChart.lineWidth = 2;
+      ctxChart.beginPath();
+      points.forEach((p, index) => {
+        if (index === 0) ctxChart.moveTo(p.x, p.y);
+        else ctxChart.lineTo(p.x, p.y);
+      });
+      ctxChart.stroke();
+
+      const clampedHour = clamp(state.currentHour, minHour, maxHour);
+      const x = padX + ((clampedHour - minHour) / spanHour) * (width - padX * 2);
+      let yValue = minValue;
+      for (let i = 0; i < state.daySeries.length - 1; i += 1) {
+        const a = state.daySeries[i];
+        const b = state.daySeries[i + 1];
+        if (clampedHour >= a.hour && clampedHour <= b.hour) {
+          const t = (clampedHour - a.hour) / (b.hour - a.hour || 1);
+          yValue = a.power_mW + (b.power_mW - a.power_mW) * t;
+          break;
+        }
+      }
+      const y = height - padY - ((yValue - minValue) / (maxValue - minValue || 1)) * (height - padY * 2);
+
+      ctxChart.fillStyle = "#ffb300";
+      ctxChart.strokeStyle = "#ffffff";
+      ctxChart.lineWidth = 2;
+      ctxChart.beginPath();
+      ctxChart.arc(x, y, 6, 0, Math.PI * 2);
+      ctxChart.fill();
+      ctxChart.stroke();
+    }
+
+    function renderFormulas(data) {
+      const formulas = data?.formulas_aplicadas || {};
+      const inputs = data?.inputs || {};
+      const resultados = data?.resultados || {};
+      const T_h = Number(inputs.T_h || 0);
+      const T_c = Number(inputs.T_c || 0);
+      const deltaT = Number(inputs.delta_T || 0);
+      const V = Number(resultados.V_teg_V || 0);
+      const I = Number(resultados.I_A || 0);
+      const PmW = Number(resultados.P_electrica_mW || 0);
+      const Q = Number(resultados.Q_calor_total_W || 0);
+      const q = Number(resultados.q_flujo_calor_W || 0);
+      const eta = Number(resultados.eta_porcentaje || 0);
+
+      const rows = [
+        {
+          exp: "V = α·(Th − Tc)",
+          sub: `${(0.05).toFixed(2)} × (${T_h.toFixed(2)} − ${T_c.toFixed(2)})`,
+          result: `→ ${fmt2(V)} V`,
+        },
+        {
+          exp: "I = V / (R + RL)",
+          sub: `${fmt2(V)} / (2.0 + 10.0)`,
+          result: `→ ${fmt3(I)} A`,
+        },
+        {
+          exp: "P = I² · RL",
+          sub: `(${fmt3(I)})² × 10`,
+          result: `→ ${fmt2(PmW)} mW`,
+        },
+        {
+          exp: "Q = αITc + K·ΔT − ½I²RL",
+          sub: `${(0.05).toFixed(2)}·${fmt3(I)}·${T_c.toFixed(2)} + 0.6·${deltaT.toFixed(2)} − ½·(${fmt3(I)})²·10`,
+          result: `→ ${fmt2(Q)} W`,
+        },
+        {
+          exp: "q = k·A·ΔT / Δx",
+          sub: `385·0.10·${deltaT.toFixed(2)} / 0.03`,
+          result: `→ ${fmt2(q)} W`,
+        },
+        {
+          exp: "η = P / Q × 100",
+          sub: `${fmt2(PmW)} / ${fmt2(Q)} × 100`,
+          result: `→ ${fmt2(eta)} %`,
+        },
+      ];
+
+      els.formulaList.innerHTML = rows.map((row, idx) => {
+        const formulaKey = ["ec1", "ec2", "ec3", "ec4", "fourier", "eta"][idx];
+        const label = formulas[formulaKey] || row.exp;
+        return `
+          <div class="formula-item">
+            <div>
+              <div class="formula-exp">${label}</div>
+              <div class="formula-sub">${row.sub}</div>
+            </div>
+            <div class="formula-val">${row.result}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function updateUIFromResult(data, hour, T_h, T_c) {
+      const resultados = data?.resultados || {};
+      state.currentData = data;
+      els.powerBig.textContent = fmt2(resultados.P_electrica_mW || 0);
+      els.efficiencyText.textContent = `${fmt2(resultados.eta_porcentaje || 0)}%`;
+      els.voltageMini.textContent = `${fmt2(resultados.V_teg_V || 0)} V`;
+      els.currentMini.textContent = `${fmt3(resultados.I_A || 0)} A`;
+      els.deltaTMini.textContent = `${fmt2(Number(data?.inputs?.delta_T ?? Math.max(0, T_h - T_c)))} °C`;
+      els.heatMini.textContent = `${fmt2(resultados.q_flujo_calor_W || 0)} W`;
+      renderFormulas(data);
+      pulsePower();
+      drawChart();
+    }
+
+    function pulsePower() {
+      state.pulseAlt = !state.pulseAlt;
+      els.powerBig.style.color = state.pulseAlt ? "#ffb300" : "#ff6d00";
+    }
+
+    function calcularLocal(hour) {
+      const T_c = 18.5;
+      const T_h = interpolateTh(hour);
+      if (hour < 10 || hour > 19) {
+        return {
+          inputs: { T_h: 0, T_c, delta_T: 0 },
+          resultados: {
+            V_teg_V: 0,
+            I_A: 0,
+            P_electrica_mW: 0,
+            Q_calor_total_W: 0,
+            eta_porcentaje: 0,
+            q_flujo_calor_W: 0,
+          },
+          formulas_aplicadas: {
+            ec1: "Sin irradiación solar",
+            ec2: "Sin irradiación solar",
+            ec3: "Sin irradiación solar",
+            ec4: "Sin irradiación solar",
+            fourier: "Sin irradiación solar",
+            eta: "Sin irradiación solar",
+          },
+        };
+      }
+      const alpha = 0.05, R = 2, RL = 10, K = 0.6, k = 385, A = 0.10, dx = 0.03;
+      const V = alpha * (T_h - T_c);
+      const I = V / (R + RL);
+      const P = I ** 2 * RL * 1000;
+      const Q = alpha * I * T_c + K * (T_h - T_c) - 0.5 * I ** 2 * RL;
+      const q = k * A * (T_h - T_c) / dx;
+      const eta = (P / 1000) / Q * 100;
+      return {
+        inputs: { T_h, T_c, delta_T: T_h - T_c },
+        resultados: {
+          V_teg_V: V,
+          I_A: I,
+          P_electrica_mW: P,
+          Q_calor_total_W: Q,
+          eta_porcentaje: eta,
+          q_flujo_calor_W: q,
+        },
+        formulas_aplicadas: {
+          ec1: `V = α·(Th − Tc) = ${fmt2(V)} V`,
+          ec2: `I = V / (R + RL) = ${fmt3(I)} A`,
+          ec3: `P = I² · RL = ${fmt2(P)} mW`,
+          ec4: `Q = αITc + K·ΔT − ½I²RL = ${fmt2(Q)} W`,
+          fourier: `q = k·A·ΔT / Δx = ${fmt2(q)} W`,
+          eta: `η = P / Q × 100 = ${fmt2(eta)} %`,
+        },
+      };
+    }
+
+    async function fetchFromBackend(hour) {
+      const T_c = 18.5;
+      const T_h = interpolateTh(hour);
+
+      if (hour < 10 || hour > 19) {
+        const local = calcularLocal(hour);
+        setBackendStatus(false);
+        updateUIFromResult(local, hour, 0, T_c);
+        return local;
+      }
+
+      try {
+        const res = await fetch(`${BACKEND}/calcular`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ T_h, T_c, R_L: 10.0, num_teg: 2 }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setBackendStatus(true);
+        updateUIFromResult(data, hour, T_h, T_c);
+        return data;
+      } catch (error) {
+        const local = calcularLocal(hour);
+        setBackendStatus(false);
+        updateUIFromResult(local, hour, T_h, T_c);
+        return local;
+      }
+    }
+
+    async function loadDaySeries() {
+      try {
+        const res = await fetch(`${BACKEND}/simular-dia-completo`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        state.daySeries = (data.serie || []).map((item) => ({
+          hour: parseFloat(String(item.hora).split(":")[0]),
+          power_mW: Number(item.resultados?.P_electrica_mW || item.calculo?.resultados?.P_electrica_mW || 0),
+        }));
+        if (!state.daySeries.length) throw new Error("Serie vacia");
+        setBackendStatus(true);
+      } catch (error) {
+        state.daySeries = Array.from({ length: 10 }, (_, i) => {
+          const hour = 10 + i;
+          const local = calcularLocal(hour);
+          return { hour, power_mW: Number(local.resultados.P_electrica_mW || 0) };
+        });
+        setBackendStatus(false);
+      }
+      drawChart();
+    }
+
+    async function onSliderChange() {
+      const hour = Number(els.timeSlider.value);
+      state.currentHour = hour;
+      updateSky(hour);
+      await fetchFromBackend(hour);
+      drawChart();
+    }
+
+    function schedulePulse() {
+      pulsePower();
+      setInterval(pulsePower, 900);
+    }
+
+    function resizeCanvases() {
+      const skyRect = els.nightCanvas.parentElement.getBoundingClientRect();
+      const chartRect = els.powerChart.getBoundingClientRect();
+      els.nightCanvas.width = Math.max(1, Math.floor(skyRect.width * devicePixelRatio));
+      els.nightCanvas.height = Math.max(1, Math.floor(skyRect.height * devicePixelRatio));
+      els.powerChart.width = Math.max(1, Math.floor(chartRect.width * devicePixelRatio));
+      els.powerChart.height = Math.max(1, Math.floor(chartRect.height * devicePixelRatio));
+      ctxNight.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      ctxChart.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+
+    els.timeSlider.addEventListener("input", onSliderChange);
+    window.addEventListener("resize", () => {
+      resizeCanvases();
+      updateSky(Number(els.timeSlider.value));
+      drawChart();
+    });
+
+    async function init() {
+      fixImagePaths();
+      resizeCanvases();
+      schedulePulse();
+      await loadDaySeries();
+      state.currentHour = 12;
+      els.timeSlider.value = "12.0";
+      updateSky(12);
+      await fetchFromBackend(12);
+      drawChart();
+    }
+
+    init();
+  </script>
+</body>
+</html>
