@@ -154,6 +154,32 @@
       font-weight: 600;
       text-transform: uppercase;
       grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .formulas-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--panel);
+      border: 1px solid var(--border-2);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .formulas-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     .sky {
@@ -221,89 +247,146 @@
       white-space: nowrap;
     }
 
-    .night-canvas {
+    .thermo-scene {
+      --tube-h: 96px;
+      --bulb-size: 28px;
+      --bar-h: 36px;
+      --reading-size: 15px;
       position: absolute;
       inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      padding: 56px 28px 30px;
+      z-index: 1;
+    }
+
+    .thermo-pin {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .thermo-reading {
+      font-size: var(--reading-size);
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .thermo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .thermo-tube {
+      width: 16px;
+      height: var(--tube-h);
+      border: 2px solid #4a5568;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      background: rgba(255,255,255,0.04);
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+
+    .thermo-mercury {
       width: 100%;
-      height: 100%;
-      z-index: 0;
-      opacity: 0;
-      transition: opacity 0.35s ease;
+      height: 4%;
+      border-radius: 2px;
+      transition: height 0.6s ease;
     }
 
-    .sky-inner {
+    .thermo-mercury.hot { background: linear-gradient(to top, #ff6d00, #ffb300); }
+    .thermo-mercury.cold { background: linear-gradient(to top, #1f6fb2, #4fc3f7); }
+
+    .thermo-bulb {
+      width: var(--bulb-size);
+      height: var(--bulb-size);
+      border-radius: 50%;
+      border: 2px solid #4a5568;
+      margin-top: -2px;
+    }
+
+    .thermo-bulb.hot { background: #ff6d00; box-shadow: 0 0 14px rgba(255,110,0,0.55); }
+    .thermo-bulb.cold { background: #4fc3f7; box-shadow: 0 0 14px rgba(79,195,247,0.5); }
+
+    .thermo-caption {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .heat-bar-wrap {
+      flex: 1;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-bottom: calc(var(--bulb-size) / 2 + 2px);
+    }
+
+    .heat-bar {
+      position: relative;
+      height: var(--bar-h);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border-2);
+      background: linear-gradient(to right, #ff6d00, #6b4a35 34%, #33455a 66%, #1f6fb2);
+    }
+
+    .heat-bar-labels {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    .heat-flow {
       position: absolute;
       inset: 0;
-      z-index: 1;
-    }
-
-    .sun {
-      position: absolute;
-      width: 104px;
-      height: 104px;
-      object-fit: contain;
-      z-index: 3;
-      filter: drop-shadow(0 0 18px #ffb300aa);
-      transition: left 0.5s, bottom 0.5s, opacity 0.4s;
       pointer-events: none;
     }
 
-    .sun.hidden { opacity: 0; }
-
-    .heat-glow {
+    .heat-flow span {
       position: absolute;
-      bottom: 10px;
-      width: 240px;
-      height: 100px;
+      top: 50%;
+      left: 2%;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: radial-gradient(closest-side, rgba(255,150,20,0.4), rgba(255,110,0,0));
-      transform: translateX(-50%);
-      z-index: 1;
-      filter: blur(3px);
-      transition: left 0.5s, opacity 0.6s;
-      pointer-events: none;
+      background: #fff;
+      opacity: 0.85;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 6px rgba(255,255,255,0.8);
+      animation: heatflow 2.2s linear infinite;
     }
 
-    .heat-glow.hidden { opacity: 0; }
+    .heat-flow span:nth-child(1) { animation-delay: 0s; }
+    .heat-flow span:nth-child(2) { animation-delay: 0.45s; }
+    .heat-flow span:nth-child(3) { animation-delay: 0.9s; }
+    .heat-flow span:nth-child(4) { animation-delay: 1.35s; }
+    .heat-flow span:nth-child(5) { animation-delay: 1.8s; }
 
-    .ambient-glow {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 60%;
-      background: linear-gradient(to top, rgba(255,140,20,0.16), rgba(255,140,20,0) 78%);
-      z-index: 0;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.7s ease;
+    .heat-flow.paused span {
+      animation-play-state: paused;
+      opacity: 0.12;
     }
 
-    .asphalt {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 84px;
-      object-fit: cover;
-      opacity: 0.92;
-      z-index: 1;
-      box-shadow: 0 -4px 16px -3px rgba(255,150,60,0.28);
-      pointer-events: none;
-    }
-
-    .cobre {
-      position: absolute;
-      bottom: 42px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: min(46%, 420px);
-      height: auto;
-      max-height: 130px;
-      object-fit: contain;
-      z-index: 2;
-      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.45));
-      pointer-events: none;
+    @keyframes heatflow {
+      0% { left: 2%; opacity: 0; }
+      12% { opacity: 1; }
+      88% { opacity: 1; }
+      100% { left: 98%; opacity: 0; }
     }
 
     .info-row {
@@ -313,7 +396,6 @@
     }
 
     .info-card,
-    .formula-box,
     .stat-card,
     .mini-card,
     .chart-box {
@@ -363,57 +445,72 @@
       accent-color: var(--accent);
     }
 
-    .formula-box {
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 100;
+    }
+
+    .modal-overlay.hidden {
+      display: none;
+    }
+
+    .modal-window {
+      width: min(560px, 100%);
+      max-height: 84vh;
       display: flex;
       flex-direction: column;
-      min-height: 0;
+      background: var(--panel);
+      border: 1px solid var(--border-2);
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.55);
       overflow: hidden;
     }
 
-    .formula-toggle {
+    .modal-titlebar {
       display: flex;
       align-items: center;
-      gap: 9px;
-      width: 100%;
-      padding: 13px 18px;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #1c2128;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .modal-close {
       background: none;
       border: none;
       color: var(--muted);
-      font-family: inherit;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 600;
+      font-size: 16px;
+      line-height: 1;
+      padding: 4px 8px;
+      border-radius: 6px;
       cursor: pointer;
-      text-align: left;
     }
 
-    .formula-toggle:hover {
+    .modal-close:hover {
       color: var(--text);
+      background: rgba(255,255,255,0.08);
     }
 
-    .formula-toggle-icon {
-      display: inline-block;
-      color: var(--accent);
-      font-size: 11px;
-      transition: transform 0.2s ease;
-    }
-
-    .formula-box:not(.collapsed) .formula-toggle-icon {
-      transform: rotate(90deg);
-    }
-
-    .formula-box.collapsed .formula-list {
-      display: none;
+    .modal-body {
+      overflow-y: auto;
     }
 
     .formula-list {
       display: flex;
       flex-direction: column;
       gap: 11px;
-      padding: 2px 18px 16px;
-      overflow-y: auto;
-      max-height: 320px;
+      padding: 10px 18px 18px;
     }
 
     .formula-item {
@@ -607,9 +704,10 @@
       }
       .center-col {
         height: auto;
-        grid-template-rows: auto auto auto;
       }
-      .formula-box,
+      .sky {
+        min-height: 260px;
+      }
       .right {
         max-height: 60vh;
       }
@@ -648,7 +746,10 @@
       </aside>
 
       <section class="center-col">
-        <div class="eyebrow">⚡ SIMULADOR ASPHALT-TEG</div>
+        <div class="eyebrow">
+          <span>⚡ SIMULADOR ASPHALT-TEG</span>
+          <button class="formulas-btn" id="formulasBtn" type="button">🧮 Ver fórmulas</button>
+        </div>
 
         <div class="sky">
           <div class="sky-shell" id="skyShell">
@@ -657,23 +758,40 @@
               <span class="status-text" id="backendStatusText">Modo offline</span>
             </div>
             <div class="sky-badge" id="phaseBadge">Fase: Noche — Sol: 0.0 h</div>
-            <canvas class="night-canvas" id="nightCanvas" width="900" height="180"></canvas>
-            <div class="sky-inner" id="skyInner">
-              <div class="ambient-glow" id="ambientGlow"></div>
-              <div class="heat-glow hidden" id="heatGlow"></div>
-              <img class="sun hidden" id="solImg" alt="Sol" />
-              <img class="cobre" id="cobreImg" alt="Cobre" />
-              <img class="asphalt" id="asfaltoImg" alt="Asfalto" />
+
+            <div class="thermo-scene" id="thermoScene">
+              <div class="thermo-pin">
+                <div class="thermo-reading" id="thValue">0.0°C</div>
+                <div class="thermo">
+                  <div class="thermo-tube"><div class="thermo-mercury hot" id="mercuryHot"></div></div>
+                  <div class="thermo-bulb hot"></div>
+                </div>
+                <div class="thermo-caption">Asfalto (T<sub>h</sub>)</div>
+              </div>
+
+              <div class="heat-bar-wrap">
+                <div class="heat-bar">
+                  <div class="heat-flow" id="heatFlow">
+                    <span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                </div>
+                <div class="heat-bar-labels">
+                  <span>Asfalto</span>
+                  <span>Cobre + TEG</span>
+                  <span>Disipador PCM</span>
+                </div>
+              </div>
+
+              <div class="thermo-pin">
+                <div class="thermo-reading" id="tcValue">0.0°C</div>
+                <div class="thermo">
+                  <div class="thermo-tube"><div class="thermo-mercury cold" id="mercuryCold"></div></div>
+                  <div class="thermo-bulb cold"></div>
+                </div>
+                <div class="thermo-caption">Disipador (T<sub>c</sub>)</div>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div class="formula-box collapsed" id="formulaBox">
-          <button class="formula-toggle" id="formulaToggle" type="button" aria-expanded="false">
-            <span class="formula-toggle-icon">▸</span>
-            <span>FÓRMULAS APLICADAS</span>
-          </button>
-          <div class="formula-list" id="formulaList"></div>
         </div>
       </section>
 
@@ -736,6 +854,18 @@
     </div>
   </div>
 
+  <div class="modal-overlay hidden" id="formulaModalOverlay">
+    <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="formulaModalTitle">
+      <div class="modal-titlebar">
+        <span id="formulaModalTitle">🧮 Fórmulas aplicadas</span>
+        <button class="modal-close" id="formulaModalClose" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="formula-list" id="formulaList"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const BACKEND = "http://localhost:8000";
     const tablaTemp = [
@@ -773,22 +903,22 @@
       deltaTMini: document.getElementById("deltaTMini"),
       heatMini: document.getElementById("heatMini"),
       formulaList: document.getElementById("formulaList"),
-      formulaBox: document.getElementById("formulaBox"),
-      formulaToggle: document.getElementById("formulaToggle"),
+      formulasBtn: document.getElementById("formulasBtn"),
+      formulaModalOverlay: document.getElementById("formulaModalOverlay"),
+      formulaModalClose: document.getElementById("formulaModalClose"),
       backendStatus: document.getElementById("backendStatus"),
       backendStatusText: document.getElementById("backendStatusText"),
       skyShell: document.getElementById("skyShell"),
-      sun: document.getElementById("solImg"),
-      heatGlow: document.getElementById("heatGlow"),
-      ambientGlow: document.getElementById("ambientGlow"),
-      cobre: document.getElementById("cobreImg"),
-      asfalto: document.getElementById("asfaltoImg"),
-      nightCanvas: document.getElementById("nightCanvas"),
+      thermoScene: document.getElementById("thermoScene"),
+      thValue: document.getElementById("thValue"),
+      tcValue: document.getElementById("tcValue"),
+      mercuryHot: document.getElementById("mercuryHot"),
+      mercuryCold: document.getElementById("mercuryCold"),
+      heatFlow: document.getElementById("heatFlow"),
       powerChart: document.getElementById("powerChart"),
       microCopy: document.getElementById("microCopy"),
     };
 
-    const ctxNight = els.nightCanvas.getContext("2d");
     const ctxChart = els.powerChart.getContext("2d");
 
     function clamp(v, min, max) {
@@ -834,26 +964,6 @@
       return { active: true, phase: "Día", sunHours: clamp(hour - 6, 0, 12) };
     }
 
-    function fixImagePaths() {
-      const tries = ["./assets/", "./ui/assets/", "assets/", "../assets/"];
-      const imgs = [
-        { el: els.sun, name: "sol" },
-        { el: els.cobre, name: "cobre" },
-        { el: els.asfalto, name: "asfalto" },
-      ];
-      imgs.forEach(({ el, name }) => {
-        if (!el) return;
-        let i = 0;
-        el.onerror = () => {
-          i += 1;
-          if (i < tries.length) {
-            el.src = `${tries[i]}${name}.png`;
-          }
-        };
-        el.src = `${tries[0]}${name}.png`;
-      });
-    }
-
     function setBackendStatus(connected) {
       state.connected = connected;
       els.backendStatus.classList.toggle("connected", connected);
@@ -863,12 +973,21 @@
         : "Backend no disponible, usando cálculo local.";
     }
 
+    function scaleThermoScene() {
+      const skyH = els.skyShell.getBoundingClientRect().height;
+      const tubeH = clamp(skyH * 0.32, 90, 320);
+      const bulbSize = clamp(skyH * 0.11, 26, 76);
+      const barH = clamp(skyH * 0.11, 30, 90);
+      const readingSize = clamp(skyH * 0.045, 14, 28);
+      els.thermoScene.style.setProperty("--tube-h", `${tubeH}px`);
+      els.thermoScene.style.setProperty("--bulb-size", `${bulbSize}px`);
+      els.thermoScene.style.setProperty("--bar-h", `${barH}px`);
+      els.thermoScene.style.setProperty("--reading-size", `${readingSize}px`);
+    }
+
     function updateSky(hour) {
       const meta = dayMeta(hour);
-      const skyShell = els.skyShell.getBoundingClientRect();
-      const skyW = skyShell.width;
-      const skyH = skyShell.height;
-      const arcPct = clamp((hour - 6) / 12, 0, 1);
+      scaleThermoScene();
       els.sunHours.textContent = fmt2(meta.sunHours);
       els.phaseText.textContent = meta.phase;
       els.phaseBadge.textContent = `Fase: ${meta.phase} — Sol: ${fmt2(meta.sunHours)} h`;
@@ -878,76 +997,28 @@
       els.currentHourText.textContent = `${hour.toFixed(1)}h`;
       els.sliderValue.textContent = `${hour.toFixed(1)}h`;
 
-      // La escena escala con el alto real del panel para que no quede
-      // un sol/placa de tamaño fijo perdidos en una caja mucho mas grande.
-      const roadH = clamp(skyH * 0.16, 60, 150);
-      const sunSize = clamp(skyH * 0.24, 78, 190);
-      const copperH = clamp(skyH * 0.24, 90, 230);
-      els.asfalto.style.height = `${roadH}px`;
-      els.cobre.style.maxHeight = `${copperH}px`;
-      els.cobre.style.bottom = `${roadH * 0.55}px`;
-      els.sun.style.width = `${sunSize}px`;
-      els.sun.style.height = `${sunSize}px`;
-      els.heatGlow.style.width = `${sunSize * 2.3}px`;
-      els.heatGlow.style.height = `${sunSize * 0.95}px`;
-
       if (!meta.active) {
         els.skyShell.style.background = "var(--sky-night)";
-        els.sun.classList.add("hidden");
-        els.heatGlow.classList.add("hidden");
-        els.heatGlow.style.opacity = "0";
-        els.ambientGlow.style.opacity = "0";
-        drawNightSky(hour);
         return;
       }
-
       els.skyShell.style.background = hour < 8 || hour > 17 ? "var(--sky-dawn)" : "var(--sky-day)";
-      els.sun.classList.remove("hidden");
-      els.nightCanvas.style.opacity = 0;
-      els.ambientGlow.style.opacity = `${0.3 + clamp(Math.sin(Math.PI * arcPct), 0, 1) * 0.7}`;
-      const sunMargin = sunSize * 0.68;
-      const sunX = (skyW - sunSize) * arcPct;
-      const sunY = skyH - sunMargin - skyH * 0.6 * Math.sin(Math.PI * arcPct) - 18;
-      els.sun.style.left = `${sunX}px`;
-      els.sun.style.bottom = `${Math.max(18, skyH - sunY - sunMargin)}px`;
-
-      const heatStrength = clamp(Math.sin(Math.PI * arcPct), 0, 1);
-      els.heatGlow.classList.toggle("hidden", heatStrength < 0.12);
-      els.heatGlow.style.left = `${sunX + sunSize / 2}px`;
-      els.heatGlow.style.opacity = `${0.35 + heatStrength * 0.5}`;
     }
 
-    function drawNightSky(hour) {
-      const rect = els.nightCanvas.getBoundingClientRect();
-      ctxNight.clearRect(0, 0, rect.width, rect.height);
-      const meta = dayMeta(hour);
-      if (meta.active) {
-        els.nightCanvas.style.opacity = 0;
-        return;
-      }
-      els.nightCanvas.style.opacity = 1;
-      ctxNight.fillStyle = "#020408";
-      ctxNight.fillRect(0, 0, rect.width, rect.height);
-      ctxNight.fillStyle = "rgba(255,255,255,0.8)";
-      const starCount = clamp(Math.round((rect.width * rect.height) / 3200), 55, 260);
-      for (let i = 0; i < starCount; i += 1) {
-        const x = (i * 67 + 23) % rect.width;
-        const y = (i * 41 + 17) % Math.max(1, rect.height - 30);
-        const r = (i % 3) + 0.8;
-        ctxNight.globalAlpha = 0.45 + ((i % 5) * 0.08);
-        ctxNight.beginPath();
-        ctxNight.arc(x, y, r, 0, Math.PI * 2);
-        ctxNight.fill();
-      }
-      ctxNight.globalAlpha = 1;
-      ctxNight.fillStyle = "#f8f8f8";
-      ctxNight.beginPath();
-      ctxNight.arc(rect.width - 52, 44, 16, 0, Math.PI * 2);
-      ctxNight.fill();
-      ctxNight.fillStyle = "#020408";
-      ctxNight.beginPath();
-      ctxNight.arc(rect.width - 45, 41, 14, 0, Math.PI * 2);
-      ctxNight.fill();
+    function updateThermoScene(T_h, T_c) {
+      const hotPct = clamp((T_h / 70) * 100, 4, 100);
+      const coldPct = clamp((T_c / 70) * 100, 4, 100);
+      els.mercuryHot.style.height = `${hotPct}%`;
+      els.mercuryCold.style.height = `${coldPct}%`;
+      els.thValue.textContent = `${fmt2(T_h)}°C`;
+      els.tcValue.textContent = `${fmt2(T_c)}°C`;
+
+      const deltaT = T_h - T_c;
+      const flowing = deltaT > 1.5;
+      els.heatFlow.classList.toggle("paused", !flowing);
+      const speed = flowing ? clamp(2.6 - deltaT / 40, 0.9, 2.6) : 2.6;
+      els.heatFlow.querySelectorAll("span").forEach((span) => {
+        span.style.animationDuration = `${speed}s`;
+      });
     }
 
     function drawChart() {
@@ -1085,6 +1156,7 @@
       els.deltaTMini.textContent = `${fmt2(Number(data?.inputs?.delta_T ?? Math.max(0, T_h - T_c)))} °C`;
       els.heatMini.textContent = `${fmt2(resultados.q_flujo_calor_W || 0)} W`;
       renderFormulas(data);
+      updateThermoScene(Number(data?.inputs?.T_h ?? T_h), Number(data?.inputs?.T_c ?? T_c));
       pulsePower();
       drawChart();
     }
@@ -1212,33 +1284,36 @@
     }
 
     function resizeCanvases() {
-      const skyRect = els.nightCanvas.parentElement.getBoundingClientRect();
       const chartRect = els.powerChart.getBoundingClientRect();
-      els.nightCanvas.width = Math.max(1, Math.floor(skyRect.width * devicePixelRatio));
-      els.nightCanvas.height = Math.max(1, Math.floor(skyRect.height * devicePixelRatio));
       els.powerChart.width = Math.max(1, Math.floor(chartRect.width * devicePixelRatio));
       els.powerChart.height = Math.max(1, Math.floor(chartRect.height * devicePixelRatio));
-      ctxNight.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
       ctxChart.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
     }
 
-    function toggleFormulas() {
-      const expanded = els.formulaBox.classList.toggle("collapsed") === false;
-      els.formulaToggle.setAttribute("aria-expanded", String(expanded));
-      resizeCanvases();
-      updateSky(state.currentHour);
+    function openFormulasModal() {
+      els.formulaModalOverlay.classList.remove("hidden");
+    }
+
+    function closeFormulasModal() {
+      els.formulaModalOverlay.classList.add("hidden");
     }
 
     els.timeSlider.addEventListener("input", onSliderChange);
-    els.formulaToggle.addEventListener("click", toggleFormulas);
+    els.formulasBtn.addEventListener("click", openFormulasModal);
+    els.formulaModalClose.addEventListener("click", closeFormulasModal);
+    els.formulaModalOverlay.addEventListener("click", (event) => {
+      if (event.target === els.formulaModalOverlay) closeFormulasModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeFormulasModal();
+    });
     window.addEventListener("resize", () => {
       resizeCanvases();
-      updateSky(Number(els.timeSlider.value));
+      scaleThermoScene();
       drawChart();
     });
 
     async function init() {
-      fixImagePaths();
       resizeCanvases();
       schedulePulse();
       await loadDaySeries();
