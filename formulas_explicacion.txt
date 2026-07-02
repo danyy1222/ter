@@ -1,0 +1,152 @@
+ASPHALT-TEG SIMULATOR - EXPLICACION DE LAS FORMULAS
+=====================================================
+
+IDEA GENERAL
+------------
+El sistema aprovecha la diferencia de temperatura entre el asfalto
+caliente por el sol (lado caliente, Th) y un disipador mas frio bajo
+el pavimento (lado frio, Tc). Un modulo termoelectrico (TEG) convierte
+esa diferencia de temperatura en electricidad. Todas las formulas de
+abajo se calculan en cadena, una alimenta a la siguiente:
+
+  Th, Tc  -->  V  -->  I  -->  P (electricidad util)
+                          \--> Q (calor que atraviesa el modulo)
+                                     \--> eta (eficiencia = P/Q)
+
+Ademas hay una formula aparte (Fourier) que calcula cuanto calor
+conduce la placa de cobre, y no depende de la corriente electrica.
+
+En el codigo esto vive en backend/teg_engine.py, funcion build_calculation().
+
+
+1) VOLTAJE DEL TEG (efecto Seebeck)
+------------------------------------
+   V = alpha * (Th - Tc)
+
+   - alpha: coeficiente Seebeck del modulo TEG (constante del material,
+     en Volts por grado Celsius). Valor usado: alpha = 0.05 V/C.
+   - Th: temperatura del lado caliente (superficie de asfalto), en C.
+   - Tc: temperatura del lado frio (disipador con PCM), en C.
+
+   Que dice: cuanto mas grande la diferencia de temperatura, mas
+   voltaje genera el modulo. Es una relacion lineal simple: el TEG
+   "traduce" directamente el salto termico en voltaje electrico.
+
+
+2) CORRIENTE ELECTRICA (Ley de Ohm)
+------------------------------------
+   I = V / (R_int + R_L)
+
+   - V: el voltaje calculado en el paso 1.
+   - R_int: resistencia interna del propio modulo TEG (2.0 ohm).
+   - R_L: resistencia de carga, lo que "consume" la energia (10.0 ohm
+     por defecto, configurable).
+
+   Que dice: el TEG se comporta como una bateria con resistencia
+   interna. La corriente que circula depende del voltaje generado y
+   de cuanta resistencia total ve el circuito (la propia del modulo
+   mas la de la carga conectada).
+
+
+3) POTENCIA ELECTRICA UTIL
+------------------------------------
+   P = I^2 * R_L
+
+   - I: corriente del paso 2.
+   - R_L: resistencia de carga.
+
+   Que dice: es la potencia electrica que realmente se entrega a la
+   carga (la que se puede aprovechar), no toda la energia generada.
+   Como el sistema tiene "num_teg" modulos iguales, la potencia total
+   se multiplica por esa cantidad (P_total = P * num_teg).
+
+
+4) BALANCE DE CALOR EN EL LADO CALIENTE
+------------------------------------
+   Q = alpha * I * Tc + K * (Th - Tc) - 0.5 * I^2 * R_L
+
+   - alpha * I * Tc: termino Peltier (el flujo de calor "arrastrado"
+     por la propia corriente electrica).
+   - K * (Th - Tc): calor que se conduce por el material del modulo
+     (K = conductividad termica del TEG, K = 0.6 W/C).
+   - 0.5 * I^2 * R_L: la mitad del calentamiento por efecto Joule
+     (perdida resistiva) se resta porque una parte vuelve hacia el
+     lado caliente.
+
+   Que dice: cuanto calor total esta "pasando" por el modulo mientras
+   genera electricidad. Este Q es el que se usa como referencia para
+   calcular la eficiencia (formula 6).
+
+
+FLUJO DE CALOR POR LA PLACA DE COBRE (Ley de Fourier)
+------------------------------------
+   q = k_copper * A * delta_T / delta_x
+
+   - k_copper: conductividad termica del cobre (385 W/(m*C), valor
+     fisico tabulado del material).
+   - A: area de la placa de cobre (largo x ancho del prototipo,
+     0.50 m x 0.20 m).
+   - delta_T: diferencia de temperatura (Th - Tc).
+   - delta_x: espesor/profundidad de la placa (0.03 m).
+
+   Que dice: cuanto calor conduce la placa de cobre que hace de puente
+   termico entre el asfalto y el modulo TEG. Es una formula clasica de
+   conduccion de calor (ley de Fourier), independiente de la parte
+   electrica; sirve para verificar que la placa efectivamente puede
+   "entregar" el calor que el TEG necesita para funcionar.
+
+
+5) EFICIENCIA
+------------------------------------
+   eta = (P / Q) * 100
+
+   - P: potencia electrica util (paso 3).
+   - Q: calor total que atraviesa el modulo (paso 4).
+
+   Que dice: que porcentaje del calor que pasa por el TEG se convierte
+   efectivamente en electricidad aprovechable. Los modulos TEG reales
+   suelen tener eficiencias bajas (unos pocos %), lo cual es normal
+   para esta tecnologia.
+
+
+CONSTANTES USADAS (backend/teg_engine.py)
+------------------------------------
+   ALPHA (alpha)     = 0.05      V/C   - coeficiente Seebeck
+   R_INT             = 2.0       ohm   - resistencia interna del TEG
+   R_LOAD (R_L)      = 10.0      ohm   - resistencia de carga por defecto
+   K_TEG (K)         = 0.6       W/C   - conductividad termica del TEG
+   K_COPPER          = 385.0     W/(m*C) - conductividad termica del cobre
+   NUM_TEG           = 2               - cantidad de modulos en el prototipo
+   T_PCM             = 18.0      C     - temperatura tipica del disipador PCM
+   Placa de cobre    = 0.50 m x 0.20 m x 0.0015 m (largo x ancho x espesor)
+   delta_x (Fourier) = 0.03      m     - profundidad usada en la formula de Fourier
+
+   Estos valores salen del prototipo real y de las mediciones de campo
+   del paper (Tahami et al., 2019), no son inventados.
+
+
+COMO SE USAN ESTAS FORMULAS EN LA APP
+------------------------------------
+- build_calculation(): corre las 6 formulas de arriba para un par
+  (Th, Tc) puntual. Es el nucleo de todo.
+- build_hour_simulation(): toma una hora del dia (ej "13:00"), busca
+  la temperatura de asfalto medida en la tabla del paper para esa
+  hora, y le aplica build_calculation().
+- build_day_simulation(): repite lo anterior para cada hora entre las
+  10:00 y las 19:00 (las horas 17:00-19:00 se estiman por tendencia
+  lineal porque el paper solo midio hasta las 16:00).
+- build_road_scaling(): toma la potencia promedio del prototipo y la
+  escala a una seccion real de carretera (ancho x largo), estimando
+  cuanta energia (kWh) se podria generar en un dia.
+- build_viability(): con el costo del prototipo, su vida util y una
+  tasa de descuento, calcula el costo anualizado y el LCOE (costo de
+  la energia por kWh), para saber si el sistema es economicamente
+  viable a esta escala.
+- build_compare_configurations(): compara dos formas de armar la
+  placa de cobre (en forma de "Z" vs en forma de "L"), asumiendo que
+  la forma "L" logra +8C mas en Th segun lo que reporta el paper.
+
+En la interfaz (ui/index.html), el panel "FORMULAS APLICADAS" muestra
+exactamente esta cadena (V, I, P, Q, q, eta) para la hora que este
+seleccionada en el control deslizante, sustituyendo los numeros reales
+calculados en ese momento.

@@ -36,7 +36,7 @@
     .root {
       height: 100vh;
       display: grid;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: auto minmax(0, 1fr);
       background: var(--bg);
       border-radius: 16px;
     }
@@ -49,8 +49,9 @@
     .app,
     .main-grid {
       height: 100%;
+      min-height: 0;
       display: grid;
-      grid-template-columns: 52px 1fr 190px;
+      grid-template-columns: 52px 1fr minmax(260px, 300px);
       gap: 14px;
       padding: 18px;
       align-items: stretch;
@@ -138,7 +139,7 @@
 
     .center-col {
       display: grid;
-      grid-template-columns: minmax(0, 1.55fr) minmax(250px, 0.85fr);
+      grid-template-columns: 1fr;
       grid-template-rows: auto minmax(0, 1fr) auto;
       gap: 10px;
       min-width: 0;
@@ -156,8 +157,8 @@
     }
 
     .sky {
-      grid-column: 1 / -1;
-      min-height: 320px;
+      min-height: 200px;
+      height: 100%;
       display: flex;
       flex-direction: column;
     }
@@ -238,39 +239,70 @@
 
     .sun {
       position: absolute;
-      width: 78px;
-      height: 78px;
+      width: 104px;
+      height: 104px;
       object-fit: contain;
       z-index: 3;
-      filter: drop-shadow(0 0 10px #ffb30088);
+      filter: drop-shadow(0 0 18px #ffb300aa);
       transition: left 0.5s, bottom 0.5s, opacity 0.4s;
       pointer-events: none;
     }
 
     .sun.hidden { opacity: 0; }
 
+    .heat-glow {
+      position: absolute;
+      bottom: 10px;
+      width: 240px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(255,150,20,0.4), rgba(255,110,0,0));
+      transform: translateX(-50%);
+      z-index: 1;
+      filter: blur(3px);
+      transition: left 0.5s, opacity 0.6s;
+      pointer-events: none;
+    }
+
+    .heat-glow.hidden { opacity: 0; }
+
+    .ambient-glow {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 60%;
+      background: linear-gradient(to top, rgba(255,140,20,0.16), rgba(255,140,20,0) 78%);
+      z-index: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.7s ease;
+    }
+
     .asphalt {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      height: 88px;
+      height: 84px;
       object-fit: cover;
-      opacity: 0.9;
+      opacity: 0.92;
       z-index: 1;
+      box-shadow: 0 -4px 16px -3px rgba(255,150,60,0.28);
       pointer-events: none;
     }
 
     .cobre {
       position: absolute;
-      bottom: 18px;
+      bottom: 42px;
       left: 50%;
       transform: translateX(-50%);
-      width: min(92%, 900px);
+      width: min(46%, 420px);
       height: auto;
-      max-height: 126px;
+      max-height: 130px;
       object-fit: contain;
       z-index: 2;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.45));
       pointer-events: none;
     }
 
@@ -318,8 +350,6 @@
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 10px;
-      grid-column: 1 / -1;
-      grid-row: 3;
     }
 
     .slider-label {
@@ -334,56 +364,127 @@
     }
 
     .formula-box {
-      padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
       min-height: 0;
-      grid-column: 1;
-      grid-row: 2;
+      overflow: hidden;
     }
 
-    .formula-title {
-      font-size: 13px;
+    .formula-toggle {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      padding: 13px 18px;
+      background: none;
+      border: none;
       color: var(--muted);
+      font-family: inherit;
+      font-size: 13px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .formula-toggle:hover {
+      color: var(--text);
+    }
+
+    .formula-toggle-icon {
+      display: inline-block;
+      color: var(--accent);
+      font-size: 11px;
+      transition: transform 0.2s ease;
+    }
+
+    .formula-box:not(.collapsed) .formula-toggle-icon {
+      transform: rotate(90deg);
+    }
+
+    .formula-box.collapsed .formula-list {
+      display: none;
     }
 
     .formula-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 11px;
+      padding: 2px 18px 16px;
+      overflow-y: auto;
+      max-height: 320px;
     }
 
     .formula-item {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 14px;
+      gap: 16px;
       align-items: center;
+      padding-bottom: 11px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .formula-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
     }
 
     .formula-exp {
-      font-family: "Courier New", monospace;
-      font-size: 13px;
-      color: #b0bac6;
+      font-family: Georgia, "Cambria Math", "Times New Roman", serif;
+      font-size: 17px;
+      color: #e6ebf1;
+      white-space: normal;
+      line-height: 1.35;
+    }
+
+    .formula-exp i {
+      font-style: italic;
+    }
+
+    .formula-exp sub,
+    .formula-exp sup {
+      font-size: 0.68em;
+    }
+
+    .formula-exp .v-alpha,
+    .formula-exp .v-eta,
+    .formula-exp .v-const { color: #c4a4ff; }
+    .formula-exp .v-th { color: var(--accent-2); }
+    .formula-exp .v-tc { color: #4fc3f7; }
+
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      margin: 0 4px;
+      line-height: 1.25;
+    }
+
+    .frac .num {
+      padding: 0 3px 2px;
+      border-bottom: 1.5px solid currentColor;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    }
+
+    .frac .den {
+      padding: 2px 3px 0;
+      white-space: nowrap;
     }
 
     .formula-sub {
       font-family: "Courier New", monospace;
-      font-size: 12px;
-      color: #b0bac6;
-      margin-top: 2px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
     }
 
     .formula-val {
-      font-size: 14px;
+      font-size: 17px;
       font-weight: 700;
-      color: var(--accent);
+      color: var(--good);
       white-space: nowrap;
     }
 
@@ -393,8 +494,7 @@
       gap: 10px;
       min-width: 0;
       min-height: 0;
-      grid-column: 2;
-      grid-row: 2;
+      overflow-y: auto;
     }
 
     .stat-card {
@@ -498,12 +598,20 @@
       line-height: 1.35;
     }
 
-    @media (max-width: 980px) {
+    @media (max-width: 860px) {
       html, body { overflow: auto; }
       .app {
         height: auto;
         min-height: 100%;
         grid-template-columns: 1fr;
+      }
+      .center-col {
+        height: auto;
+        grid-template-rows: auto auto auto;
+      }
+      .formula-box,
+      .right {
+        max-height: 60vh;
       }
       .time-col {
         min-height: 140px;
@@ -551,6 +659,8 @@
             <div class="sky-badge" id="phaseBadge">Fase: Noche — Sol: 0.0 h</div>
             <canvas class="night-canvas" id="nightCanvas" width="900" height="180"></canvas>
             <div class="sky-inner" id="skyInner">
+              <div class="ambient-glow" id="ambientGlow"></div>
+              <div class="heat-glow hidden" id="heatGlow"></div>
               <img class="sun hidden" id="solImg" alt="Sol" />
               <img class="cobre" id="cobreImg" alt="Cobre" />
               <img class="asphalt" id="asfaltoImg" alt="Asfalto" />
@@ -558,8 +668,11 @@
           </div>
         </div>
 
-        <div class="formula-box">
-          <div class="formula-title">FÓRMULAS APLICADAS</div>
+        <div class="formula-box collapsed" id="formulaBox">
+          <button class="formula-toggle" id="formulaToggle" type="button" aria-expanded="false">
+            <span class="formula-toggle-icon">▸</span>
+            <span>FÓRMULAS APLICADAS</span>
+          </button>
           <div class="formula-list" id="formulaList"></div>
         </div>
       </section>
@@ -660,10 +773,14 @@
       deltaTMini: document.getElementById("deltaTMini"),
       heatMini: document.getElementById("heatMini"),
       formulaList: document.getElementById("formulaList"),
+      formulaBox: document.getElementById("formulaBox"),
+      formulaToggle: document.getElementById("formulaToggle"),
       backendStatus: document.getElementById("backendStatus"),
       backendStatusText: document.getElementById("backendStatusText"),
       skyShell: document.getElementById("skyShell"),
       sun: document.getElementById("solImg"),
+      heatGlow: document.getElementById("heatGlow"),
+      ambientGlow: document.getElementById("ambientGlow"),
       cobre: document.getElementById("cobreImg"),
       asfalto: document.getElementById("asfaltoImg"),
       nightCanvas: document.getElementById("nightCanvas"),
@@ -761,9 +878,25 @@
       els.currentHourText.textContent = `${hour.toFixed(1)}h`;
       els.sliderValue.textContent = `${hour.toFixed(1)}h`;
 
+      // La escena escala con el alto real del panel para que no quede
+      // un sol/placa de tamaño fijo perdidos en una caja mucho mas grande.
+      const roadH = clamp(skyH * 0.16, 60, 150);
+      const sunSize = clamp(skyH * 0.24, 78, 190);
+      const copperH = clamp(skyH * 0.24, 90, 230);
+      els.asfalto.style.height = `${roadH}px`;
+      els.cobre.style.maxHeight = `${copperH}px`;
+      els.cobre.style.bottom = `${roadH * 0.55}px`;
+      els.sun.style.width = `${sunSize}px`;
+      els.sun.style.height = `${sunSize}px`;
+      els.heatGlow.style.width = `${sunSize * 2.3}px`;
+      els.heatGlow.style.height = `${sunSize * 0.95}px`;
+
       if (!meta.active) {
         els.skyShell.style.background = "var(--sky-night)";
         els.sun.classList.add("hidden");
+        els.heatGlow.classList.add("hidden");
+        els.heatGlow.style.opacity = "0";
+        els.ambientGlow.style.opacity = "0";
         drawNightSky(hour);
         return;
       }
@@ -771,10 +904,17 @@
       els.skyShell.style.background = hour < 8 || hour > 17 ? "var(--sky-dawn)" : "var(--sky-day)";
       els.sun.classList.remove("hidden");
       els.nightCanvas.style.opacity = 0;
-      const sunX = (skyW - 58) * arcPct;
-      const sunY = skyH - 58 - skyH * 0.68 * Math.sin(Math.PI * arcPct) - 18;
+      els.ambientGlow.style.opacity = `${0.3 + clamp(Math.sin(Math.PI * arcPct), 0, 1) * 0.7}`;
+      const sunMargin = sunSize * 0.68;
+      const sunX = (skyW - sunSize) * arcPct;
+      const sunY = skyH - sunMargin - skyH * 0.6 * Math.sin(Math.PI * arcPct) - 18;
       els.sun.style.left = `${sunX}px`;
-      els.sun.style.bottom = `${Math.max(14, skyH - sunY - 58)}px`;
+      els.sun.style.bottom = `${Math.max(18, skyH - sunY - sunMargin)}px`;
+
+      const heatStrength = clamp(Math.sin(Math.PI * arcPct), 0, 1);
+      els.heatGlow.classList.toggle("hidden", heatStrength < 0.12);
+      els.heatGlow.style.left = `${sunX + sunSize / 2}px`;
+      els.heatGlow.style.opacity = `${0.35 + heatStrength * 0.5}`;
     }
 
     function drawNightSky(hour) {
@@ -789,9 +929,10 @@
       ctxNight.fillStyle = "#020408";
       ctxNight.fillRect(0, 0, rect.width, rect.height);
       ctxNight.fillStyle = "rgba(255,255,255,0.8)";
-      for (let i = 0; i < 55; i += 1) {
+      const starCount = clamp(Math.round((rect.width * rect.height) / 3200), 55, 260);
+      for (let i = 0; i < starCount; i += 1) {
         const x = (i * 67 + 23) % rect.width;
-        const y = (i * 41 + 17) % (rect.height - 30);
+        const y = (i * 41 + 17) % Math.max(1, rect.height - 30);
         const r = (i % 3) + 0.8;
         ctxNight.globalAlpha = 0.45 + ((i % 5) * 0.08);
         ctxNight.beginPath();
@@ -876,7 +1017,6 @@
     }
 
     function renderFormulas(data) {
-      const formulas = data?.formulas_aplicadas || {};
       const inputs = data?.inputs || {};
       const resultados = data?.resultados || {};
       const T_h = Number(inputs.T_h || 0);
@@ -891,44 +1031,42 @@
 
       const rows = [
         {
-          exp: "V = α·(Th − Tc)",
+          exp: `<i>V</i> = <span class="v-alpha">α</span>·(<span class="v-th"><i>T</i><sub>h</sub></span> − <span class="v-tc"><i>T</i><sub>c</sub></span>)`,
           sub: `${(0.05).toFixed(2)} × (${T_h.toFixed(2)} − ${T_c.toFixed(2)})`,
           result: `→ ${fmt2(V)} V`,
         },
         {
-          exp: "I = V / (R + RL)",
-          sub: `${fmt2(V)} / (2.0 + 10.0)`,
+          exp: `<i>I</i> = <span class="frac"><span class="num"><i>V</i></span><span class="den">(<i>R</i> + <i>R</i><sub>L</sub>)</span></span>`,
+          sub: `<span class="frac"><span class="num">${fmt2(V)}</span><span class="den">(2.0 + 10.0)</span></span>`,
           result: `→ ${fmt3(I)} A`,
         },
         {
-          exp: "P = I² · RL",
+          exp: `<i>P</i> = <i>I</i><sup>2</sup> · <i>R</i><sub>L</sub>`,
           sub: `(${fmt3(I)})² × 10`,
           result: `→ ${fmt2(PmW)} mW`,
         },
         {
-          exp: "Q = αITc + K·ΔT − ½I²RL",
+          exp: `<i>Q</i> = <span class="v-alpha">α</span><i>I</i><span class="v-tc"><i>T</i><sub>c</sub></span> + <span class="v-const"><i>K</i></span>·Δ<i>T</i> − ½<i>I</i><sup>2</sup><i>R</i><sub>L</sub>`,
           sub: `${(0.05).toFixed(2)}·${fmt3(I)}·${T_c.toFixed(2)} + 0.6·${deltaT.toFixed(2)} − ½·(${fmt3(I)})²·10`,
           result: `→ ${fmt2(Q)} W`,
         },
         {
-          exp: "q = k·A·ΔT / Δx",
-          sub: `385·0.10·${deltaT.toFixed(2)} / 0.03`,
+          exp: `<i>q</i> = <span class="frac"><span class="num"><span class="v-const"><i>k</i></span>·<i>A</i>·Δ<i>T</i></span><span class="den">Δ<i>x</i></span></span>`,
+          sub: `<span class="frac"><span class="num">385·0.10·${deltaT.toFixed(2)}</span><span class="den">0.03</span></span>`,
           result: `→ ${fmt2(q)} W`,
         },
         {
-          exp: "η = P / Q × 100",
-          sub: `${fmt2(PmW)} / ${fmt2(Q)} × 100`,
+          exp: `<span class="v-eta">η</span> = <span class="frac"><span class="num"><i>P</i></span><span class="den"><i>Q</i></span></span> × 100`,
+          sub: `<span class="frac"><span class="num">${fmt2(PmW)}</span><span class="den">${fmt2(Q)}</span></span> × 100`,
           result: `→ ${fmt2(eta)} %`,
         },
       ];
 
-      els.formulaList.innerHTML = rows.map((row, idx) => {
-        const formulaKey = ["ec1", "ec2", "ec3", "ec4", "fourier", "eta"][idx];
-        const label = formulas[formulaKey] || row.exp;
+      els.formulaList.innerHTML = rows.map((row) => {
         return `
           <div class="formula-item">
             <div>
-              <div class="formula-exp">${label}</div>
+              <div class="formula-exp">${row.exp}</div>
               <div class="formula-sub">${row.sub}</div>
             </div>
             <div class="formula-val">${row.result}</div>
@@ -1084,7 +1222,15 @@
       ctxChart.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
     }
 
+    function toggleFormulas() {
+      const expanded = els.formulaBox.classList.toggle("collapsed") === false;
+      els.formulaToggle.setAttribute("aria-expanded", String(expanded));
+      resizeCanvases();
+      updateSky(state.currentHour);
+    }
+
     els.timeSlider.addEventListener("input", onSliderChange);
+    els.formulaToggle.addEventListener("click", toggleFormulas);
     window.addEventListener("resize", () => {
       resizeCanvases();
       updateSky(Number(els.timeSlider.value));
