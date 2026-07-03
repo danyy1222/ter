@@ -26,6 +26,7 @@ P_AVE_FIELD = 29.0
 COST_UNIT = 150.0
 LIFETIME = 20
 DISCOUNT_RATE = 0.03
+PAPER_ROAD_LCOE_USD_KWH = 0.9
 
 
 def validate_temperature_pair(T_h: float, T_c: float) -> None:
@@ -307,11 +308,21 @@ def build_road_scaling(ancho: float, longitud: float, p_ave_mW: float = P_AVE_FI
 
 
 def build_viability() -> dict[str, Any]:
-    """Compute annualized cost, annual energy, and LCOE."""
+    """Compute annualized cost, annual energy, and LCOE for the lab prototype,
+    and report the paper's own road-scale LCOE figure alongside it for comparison.
+
+    The two LCOE figures are not directly comparable: the prototype LCOE prices a
+    single 0.1 m^2 lab unit in isolation (a scale at which TEG harvesting is not
+    meant to be economical), while the paper's 0.9 USD/kWh applies to a 10 m wide
+    paved road. The paper does not disclose the capital-cost assumption behind that
+    road-scale figure (a naive per-unit scaling of COST_UNIT lands near 90-120
+    USD/kWh, not 0.9), so it is reported here as a direct citation rather than a
+    value re-derived from this module's formulas.
+    """
 
     cost_annualized = calculate_annualized_cost(COST_UNIT, LIFETIME, DISCOUNT_RATE)
     annual_energy_kwh = (P_AVE_FIELD / 1000.0) * 8.0 * 365.0 / 1000.0
-    lcoe = calculate_lcoe(cost_annualized, annual_energy_kwh)
+    lcoe_prototype = calculate_lcoe(cost_annualized, annual_energy_kwh)
     return {
         "inputs": {
             "costo_capital_USD": COST_UNIT,
@@ -323,14 +334,23 @@ def build_viability() -> dict[str, Any]:
         "resultados": {
             "costo_anualizado_USD": round(cost_annualized, 6),
             "energia_anual_kWh": round(annual_energy_kwh, 6),
-            "LCOE_USD_kWh": round(lcoe, 6),
-            "interpretacion": "Valor alto indica baja viabilidad economica a escala de prototipo",
+            "LCOE_prototipo_USD_kWh": round(lcoe_prototype, 6),
+            "LCOE_carretera_paper_USD_kWh": PAPER_ROAD_LCOE_USD_KWH,
+            "interpretacion": (
+                "LCOE_prototipo evalua comprar una sola placa/TEG de laboratorio aislada, no es una cifra "
+                "economicamente representativa por si sola. LCOE_carretera_paper es el valor que el paper "
+                "reporta para una carretera pavimentada de 10 m de ancho; el paper no detalla el costo de "
+                "capital asumido a esa escala, por lo que se cita directo del paper en vez de recalcularse."
+            ),
         },
         "formulas_aplicadas": {
             "capital_recovery": "costo_anualizado = costo_capital * (r*(1+r)^n) / ((1+r)^n - 1)",
             "lcoe": "LCOE = costo_anualizado / energia_anual_kwh",
         },
-        "fuente": "Analisis economico basado en parametros del prototipo del paper",
+        "fuente": (
+            "Analisis economico del prototipo basado en parametros del paper; LCOE de carretera citado "
+            "directo del paper (Tahami et al. 2019)"
+        ),
     }
 
 
