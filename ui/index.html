@@ -247,146 +247,107 @@
       white-space: nowrap;
     }
 
-    .thermo-scene {
-      --tube-h: 96px;
-      --bulb-size: 28px;
-      --bar-h: 36px;
-      --reading-size: 15px;
+    .sun-dot {
+      position: absolute;
+      width: clamp(14px, 4vmin, 32px);
+      height: clamp(14px, 4vmin, 32px);
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff6d6, #ffb300 60%, transparent 100%);
+      box-shadow: 0 0 18px 6px rgba(255, 179, 0, var(--sun-glow, 0.6));
+      transform: translate(-50%, -50%);
+      transition: left 0.4s ease, top 0.4s ease, opacity 0.4s ease;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .teg-scene {
       position: absolute;
       inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 22px;
-      padding: 56px 28px 30px;
+      padding: 46px 20px 18px;
       z-index: 1;
     }
 
-    .thermo-pin {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .thermo-reading {
-      font-size: var(--reading-size);
-      font-weight: 700;
-      color: var(--text);
-      white-space: nowrap;
-    }
-
-    .thermo {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .thermo-tube {
-      width: 16px;
-      height: var(--tube-h);
-      border: 2px solid #4a5568;
-      border-bottom: none;
-      border-radius: 8px 8px 0 0;
-      background: rgba(255,255,255,0.04);
-      display: flex;
-      align-items: flex-end;
-      overflow: hidden;
-    }
-
-    .thermo-mercury {
+    .scene-svg {
       width: 100%;
-      height: 4%;
-      border-radius: 2px;
-      transition: height 0.6s ease;
+      height: 100%;
+      max-width: 760px;
+      overflow: visible;
     }
 
-    .thermo-mercury.hot { background: linear-gradient(to top, #ff6d00, #ffb300); }
-    .thermo-mercury.cold { background: linear-gradient(to top, #1f6fb2, #4fc3f7); }
-
-    .thermo-bulb {
-      width: var(--bulb-size);
-      height: var(--bulb-size);
-      border-radius: 50%;
-      border: 2px solid #4a5568;
-      margin-top: -2px;
-    }
-
-    .thermo-bulb.hot { background: #ff6d00; box-shadow: 0 0 14px rgba(255,110,0,0.55); }
-    .thermo-bulb.cold { background: #4fc3f7; box-shadow: 0 0 14px rgba(79,195,247,0.5); }
-
-    .thermo-caption {
-      font-size: 10px;
-      color: var(--muted);
-      text-transform: uppercase;
+    .scene-label {
+      font-family: "Segoe UI", sans-serif;
+      font-size: 11px;
+      fill: var(--muted);
       letter-spacing: 0.05em;
-      white-space: nowrap;
     }
 
-    .heat-bar-wrap {
-      flex: 1;
-      max-width: 640px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding-bottom: calc(var(--bulb-size) / 2 + 2px);
+    .scene-label.light { fill: #e6ebf1; }
+    .scene-label.tiny { font-size: 9px; }
+
+    .scene-label.value {
+      font-size: 15px;
+      font-weight: 700;
+      fill: var(--text);
     }
 
-    .heat-bar {
-      position: relative;
-      height: var(--bar-h);
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid var(--border-2);
-      background: linear-gradient(to right, #ff6d00, #6b4a35 34%, #33455a 66%, #1f6fb2);
+    .scene-label.value.hot { fill: var(--accent-2); }
+    .scene-label.value.cold { fill: #4fc3f7; }
+
+    .heatsink-fin {
+      fill: #4fc3f7;
+      opacity: 0.75;
     }
 
-    .heat-bar-labels {
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
+    .teg-chip {
+      fill: #1c2128;
+      stroke: #4a5568;
+      stroke-width: 1.5;
     }
 
-    .heat-flow {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
+    .wire-line {
+      fill: none;
+      stroke: #5a6472;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
-    .heat-flow span {
-      position: absolute;
-      top: 50%;
-      left: 2%;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #fff;
-      opacity: 0.85;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 6px rgba(255,255,255,0.8);
-      animation: heatflow 2.2s linear infinite;
+    .electron {
+      fill: #fff59d;
+      filter: drop-shadow(0 0 4px rgba(255, 245, 157, 0.85));
+      animation: electronflow 2.2s linear infinite;
+      opacity: 0;
     }
 
-    .heat-flow span:nth-child(1) { animation-delay: 0s; }
-    .heat-flow span:nth-child(2) { animation-delay: 0.45s; }
-    .heat-flow span:nth-child(3) { animation-delay: 0.9s; }
-    .heat-flow span:nth-child(4) { animation-delay: 1.35s; }
-    .heat-flow span:nth-child(5) { animation-delay: 1.8s; }
+    #electronGroup .electron:nth-child(1) { animation-delay: 0s; }
+    #electronGroup .electron:nth-child(2) { animation-delay: 0.5s; }
+    #electronGroup .electron:nth-child(3) { animation-delay: 1s; }
+    #electronGroup .electron:nth-child(4) { animation-delay: 1.5s; }
 
-    .heat-flow.paused span {
+    #electronGroup.paused .electron {
       animation-play-state: paused;
-      opacity: 0.12;
+      opacity: 0 !important;
     }
 
-    @keyframes heatflow {
-      0% { left: 2%; opacity: 0; }
-      12% { opacity: 1; }
-      88% { opacity: 1; }
-      100% { left: 98%; opacity: 0; }
+    @keyframes electronflow {
+      0% { cx: 378px; opacity: 0; }
+      10% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { cx: 202px; opacity: 0; }
+    }
+
+    .bulb-glow {
+      transition: opacity 0.4s ease;
+    }
+
+    .bulb-filament {
+      fill: none;
+      stroke-width: 1.5;
+      transition: stroke 0.4s ease, opacity 0.4s ease;
     }
 
     .info-row {
@@ -642,6 +603,107 @@
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
     }
 
+    .volt-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .volt-title {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+    }
+
+    .volt-stepper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .volt-btn {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-2);
+      background: #1c2128;
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .volt-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .volt-count {
+      flex: 1;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .volt-count small {
+      display: block;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .volt-total {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .volt-total strong {
+      color: var(--good);
+      font-size: 15px;
+    }
+
+    .volt-select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-2);
+      background: #1c2128;
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+    }
+
+    .volt-result {
+      font-size: 11.5px;
+      line-height: 1.35;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .volt-result.ok {
+      color: #69f0ae;
+      border-color: rgba(105, 240, 174, 0.35);
+    }
+
+    .volt-result.no {
+      color: #ff8a80;
+      border-color: rgba(255, 138, 128, 0.35);
+    }
+
     .mini-grid {
       display: none;
     }
@@ -759,37 +821,57 @@
             </div>
             <div class="sky-badge" id="phaseBadge">Fase: Noche — Sol: 0.0 h</div>
 
-            <div class="thermo-scene" id="thermoScene">
-              <div class="thermo-pin">
-                <div class="thermo-reading" id="thValue">0.0°C</div>
-                <div class="thermo">
-                  <div class="thermo-tube"><div class="thermo-mercury hot" id="mercuryHot"></div></div>
-                  <div class="thermo-bulb hot"></div>
-                </div>
-                <div class="thermo-caption">Asfalto (T<sub>h</sub>)</div>
-              </div>
+            <div class="sun-dot" id="sunDot"></div>
 
-              <div class="heat-bar-wrap">
-                <div class="heat-bar">
-                  <div class="heat-flow" id="heatFlow">
-                    <span></span><span></span><span></span><span></span><span></span>
-                  </div>
-                </div>
-                <div class="heat-bar-labels">
-                  <span>Asfalto</span>
-                  <span>Cobre + TEG</span>
-                  <span>Disipador PCM</span>
-                </div>
-              </div>
+            <div class="teg-scene" id="tegScene">
+              <svg class="scene-svg" viewBox="0 0 640 300" preserveAspectRatio="xMidYMid meet" id="sceneSvg">
+                <defs>
+                  <linearGradient id="copperGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop id="copperStopHot" offset="0%" stop-color="#ff6d00" />
+                    <stop id="copperStopCold" offset="100%" stop-color="#4fc3f7" />
+                  </linearGradient>
+                  <radialGradient id="bulbGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#fff59d" stop-opacity="0.95" />
+                    <stop offset="100%" stop-color="#fff59d" stop-opacity="0" />
+                  </radialGradient>
+                </defs>
 
-              <div class="thermo-pin">
-                <div class="thermo-reading" id="tcValue">0.0°C</div>
-                <div class="thermo">
-                  <div class="thermo-tube"><div class="thermo-mercury cold" id="mercuryCold"></div></div>
-                  <div class="thermo-bulb cold"></div>
-                </div>
-                <div class="thermo-caption">Disipador (T<sub>c</sub>)</div>
-              </div>
+                <rect x="40" y="20" width="560" height="50" rx="6" fill="#26221f" stroke="#3a332c" stroke-width="2" />
+                <rect x="40" y="20" width="560" height="10" rx="4" fill="#4a4038" opacity="0.55" />
+                <text x="320" y="49" class="scene-label" text-anchor="middle">ASFALTO</text>
+
+                <path id="copperPath" d="M400,70 L560,70 L560,92 L422,92 L422,230 L400,230 Z" fill="url(#copperGrad)" stroke="#8a5a2b" stroke-width="1.5" />
+                <text x="480" y="84" class="scene-label light" text-anchor="middle">COBRE (L)</text>
+                <text id="thValue" x="480" y="66" class="scene-label value hot" text-anchor="middle">0.0°C</text>
+
+                <rect id="tegChip" class="teg-chip" x="378" y="230" width="66" height="28" rx="3" />
+                <text x="411" y="248" class="scene-label tiny" text-anchor="middle" fill="#e6ebf1">TEG</text>
+
+                <g id="heatsinkFins">
+                  <rect class="heatsink-fin" x="379" y="258" width="8" height="28" rx="1" />
+                  <rect class="heatsink-fin" x="393" y="258" width="8" height="28" rx="1" />
+                  <rect class="heatsink-fin" x="407" y="258" width="8" height="28" rx="1" />
+                  <rect class="heatsink-fin" x="421" y="258" width="8" height="28" rx="1" />
+                  <rect class="heatsink-fin" x="435" y="258" width="8" height="28" rx="1" />
+                </g>
+                <text x="411" y="298" class="scene-label tiny" text-anchor="middle">DISIPADOR</text>
+                <text id="tcValue" x="411" y="219" class="scene-label value cold" text-anchor="middle">0.0°C</text>
+
+                <path class="wire-line" d="M378,224 L200,224 L200,150 L168,150" />
+                <path class="wire-line" d="M378,250 L215,250 L215,210 L168,210" />
+
+                <g id="electronGroup">
+                  <circle class="electron" cy="224" r="4"></circle>
+                  <circle class="electron" cy="224" r="4"></circle>
+                  <circle class="electron" cy="224" r="4"></circle>
+                  <circle class="electron" cy="224" r="4"></circle>
+                </g>
+
+                <circle id="bulbGlowOuter" class="bulb-glow" cx="150" cy="180" r="34" fill="url(#bulbGrad)" opacity="0.1" />
+                <circle cx="150" cy="180" r="15" fill="#2c2c2c" stroke="#6b6b6b" stroke-width="2" />
+                <path id="bulbFilament" class="bulb-filament" d="M143,180 L148,173 L152,187 L157,180" stroke="#8a7a3a" />
+                <text x="150" y="222" class="scene-label tiny" text-anchor="middle">CARGA (R_L)</text>
+              </svg>
             </div>
           </div>
         </div>
@@ -817,6 +899,18 @@
               <div class="info-value" id="efficiencyText">0.00%</div>
             </div>
           </div>
+        </div>
+
+        <div class="volt-card" id="voltCard">
+          <div class="volt-title">🔌 Editor de voltaje</div>
+          <div class="volt-stepper">
+            <button class="volt-btn" id="tegMinus" type="button" aria-label="Menos TEG en serie">−</button>
+            <div class="volt-count"><span id="tegCount">2</span><small>TEG en serie</small></div>
+            <button class="volt-btn" id="tegPlus" type="button" aria-label="Mas TEG en serie">+</button>
+          </div>
+          <div class="volt-total">Voltaje total: <strong id="voltTotal">0.00 V</strong></div>
+          <select class="volt-select" id="deviceSelect"></select>
+          <div class="volt-result" id="voltResult">Elige un dispositivo para comparar.</div>
         </div>
 
         <div class="mini-grid">
@@ -884,6 +978,8 @@
       currentHour: 12,
       pulseAlt: false,
       currentData: null,
+      tegSeries: 2,
+      singleVoltage: 0,
     };
 
     const els = {
@@ -909,15 +1005,35 @@
       backendStatus: document.getElementById("backendStatus"),
       backendStatusText: document.getElementById("backendStatusText"),
       skyShell: document.getElementById("skyShell"),
-      thermoScene: document.getElementById("thermoScene"),
+      sunDot: document.getElementById("sunDot"),
       thValue: document.getElementById("thValue"),
       tcValue: document.getElementById("tcValue"),
-      mercuryHot: document.getElementById("mercuryHot"),
-      mercuryCold: document.getElementById("mercuryCold"),
-      heatFlow: document.getElementById("heatFlow"),
+      copperStopHot: document.getElementById("copperStopHot"),
+      copperStopCold: document.getElementById("copperStopCold"),
+      electronGroup: document.getElementById("electronGroup"),
+      bulbGlowOuter: document.getElementById("bulbGlowOuter"),
+      bulbFilament: document.getElementById("bulbFilament"),
       powerChart: document.getElementById("powerChart"),
       microCopy: document.getElementById("microCopy"),
+      voltCard: document.getElementById("voltCard"),
+      tegMinus: document.getElementById("tegMinus"),
+      tegPlus: document.getElementById("tegPlus"),
+      tegCount: document.getElementById("tegCount"),
+      voltTotal: document.getElementById("voltTotal"),
+      deviceSelect: document.getElementById("deviceSelect"),
+      voltResult: document.getElementById("voltResult"),
     };
+
+    const DEVICES = [
+      { name: "LED indicador rojo", volts: 1.6 },
+      { name: "Reloj digital", volts: 1.5 },
+      { name: "Calculadora solar", volts: 3.0 },
+      { name: "LED blanco / azul", volts: 3.0 },
+      { name: "Sensor 3.3V (Arduino)", volts: 3.3 },
+      { name: "Zumbador piezoelectrico", volts: 3.0 },
+      { name: "Microcontrolador 5V (Arduino Uno)", volts: 5.0 },
+      { name: "Cargar un celular (USB)", volts: 5.0 },
+    ];
 
     const ctxChart = els.powerChart.getContext("2d");
 
@@ -973,21 +1089,22 @@
         : "Backend no disponible, usando cálculo local.";
     }
 
-    function scaleThermoScene() {
-      const skyH = els.skyShell.getBoundingClientRect().height;
-      const tubeH = clamp(skyH * 0.32, 90, 320);
-      const bulbSize = clamp(skyH * 0.11, 26, 76);
-      const barH = clamp(skyH * 0.11, 30, 90);
-      const readingSize = clamp(skyH * 0.045, 14, 28);
-      els.thermoScene.style.setProperty("--tube-h", `${tubeH}px`);
-      els.thermoScene.style.setProperty("--bulb-size", `${bulbSize}px`);
-      els.thermoScene.style.setProperty("--bar-h", `${barH}px`);
-      els.thermoScene.style.setProperty("--reading-size", `${readingSize}px`);
+    function updateSunPosition(hour) {
+      const startH = 6;
+      const endH = 19;
+      const active = hour > startH && hour < endH;
+      els.sunDot.style.opacity = active ? "1" : "0";
+      if (!active) return;
+      const t = clamp((hour - startH) / (endH - startH), 0, 1);
+      const elevation = Math.sin(Math.PI * t);
+      els.sunDot.style.left = `${(t * 100).toFixed(2)}%`;
+      els.sunDot.style.top = `${(96 - elevation * 80).toFixed(2)}%`;
+      els.sunDot.style.setProperty("--sun-glow", (0.4 + elevation * 0.6).toFixed(2));
     }
 
     function updateSky(hour) {
       const meta = dayMeta(hour);
-      scaleThermoScene();
+      updateSunPosition(hour);
       els.sunHours.textContent = fmt2(meta.sunHours);
       els.phaseText.textContent = meta.phase;
       els.phaseBadge.textContent = `Fase: ${meta.phase} — Sol: ${fmt2(meta.sunHours)} h`;
@@ -1004,21 +1121,70 @@
       els.skyShell.style.background = hour < 8 || hour > 17 ? "var(--sky-dawn)" : "var(--sky-day)";
     }
 
-    function updateThermoScene(T_h, T_c) {
-      const hotPct = clamp((T_h / 70) * 100, 4, 100);
-      const coldPct = clamp((T_c / 70) * 100, 4, 100);
-      els.mercuryHot.style.height = `${hotPct}%`;
-      els.mercuryCold.style.height = `${coldPct}%`;
+    function tempToColor(t) {
+      const pct = clamp(t / 70, 0, 1);
+      const stops = [
+        { p: 0.0, c: [31, 111, 178] },
+        { p: 0.5, c: [107, 74, 53] },
+        { p: 1.0, c: [255, 109, 0] },
+      ];
+      let a = stops[0];
+      let b = stops[stops.length - 1];
+      for (let i = 0; i < stops.length - 1; i += 1) {
+        if (pct >= stops[i].p && pct <= stops[i + 1].p) {
+          a = stops[i];
+          b = stops[i + 1];
+          break;
+        }
+      }
+      const span = b.p - a.p || 1;
+      const localT = (pct - a.p) / span;
+      const r = Math.round(a.c[0] + (b.c[0] - a.c[0]) * localT);
+      const g = Math.round(a.c[1] + (b.c[1] - a.c[1]) * localT);
+      const bl = Math.round(a.c[2] + (b.c[2] - a.c[2]) * localT);
+      return `rgb(${r},${g},${bl})`;
+    }
+
+    function updateTegScene(T_h, T_c, I_A, P_mW) {
       els.thValue.textContent = `${fmt2(T_h)}°C`;
       els.tcValue.textContent = `${fmt2(T_c)}°C`;
+      els.copperStopHot.setAttribute("stop-color", tempToColor(T_h));
+      els.copperStopCold.setAttribute("stop-color", tempToColor(T_c));
 
-      const deltaT = T_h - T_c;
-      const flowing = deltaT > 1.5;
-      els.heatFlow.classList.toggle("paused", !flowing);
-      const speed = flowing ? clamp(2.6 - deltaT / 40, 0.9, 2.6) : 2.6;
-      els.heatFlow.querySelectorAll("span").forEach((span) => {
-        span.style.animationDuration = `${speed}s`;
+      const flowing = Number(I_A) > 0.0005;
+      els.electronGroup.classList.toggle("paused", !flowing);
+      const speed = flowing ? clamp(2.6 - Number(I_A) * 8, 0.7, 2.6) : 2.6;
+      els.electronGroup.querySelectorAll(".electron").forEach((dot) => {
+        dot.style.animationDuration = `${speed}s`;
       });
+
+      const glow = clamp(Number(P_mW) / 25, 0.04, 1);
+      els.bulbGlowOuter.style.opacity = glow.toFixed(2);
+      els.bulbFilament.style.stroke = glow > 0.5 ? "#fff59d" : "#8a7a3a";
+      els.bulbFilament.style.opacity = clamp(0.3 + glow, 0.3, 1).toFixed(2);
+    }
+
+    function populateDeviceSelect() {
+      els.deviceSelect.innerHTML = DEVICES.map((d, i) => `<option value="${i}">${d.name} (${d.volts.toFixed(1)} V)</option>`).join("");
+    }
+
+    function updateVoltEditor() {
+      const total = state.singleVoltage * state.tegSeries;
+      els.tegCount.textContent = state.tegSeries;
+      els.voltTotal.textContent = `${fmt2(total)} V`;
+      const device = DEVICES[Number(els.deviceSelect.value || 0)];
+      if (!device) return;
+      if (total >= device.volts) {
+        const sobra = total - device.volts;
+        els.voltResult.textContent = `Sí alcanza para "${device.name}". Sobran ${fmt2(sobra)} V.`;
+        els.voltResult.className = "volt-result ok";
+      } else {
+        const falta = device.volts - total;
+        const extra = state.singleVoltage > 0.0001 ? Math.ceil(falta / state.singleVoltage) : null;
+        const hint = extra ? ` Agrega ${extra} TEG más en serie.` : "";
+        els.voltResult.textContent = `No alcanza para "${device.name}". Faltan ${fmt2(falta)} V.${hint}`;
+        els.voltResult.className = "volt-result no";
+      }
     }
 
     function drawChart() {
@@ -1156,7 +1322,14 @@
       els.deltaTMini.textContent = `${fmt2(Number(data?.inputs?.delta_T ?? Math.max(0, T_h - T_c)))} °C`;
       els.heatMini.textContent = `${fmt2(resultados.q_flujo_calor_W || 0)} W`;
       renderFormulas(data);
-      updateThermoScene(Number(data?.inputs?.T_h ?? T_h), Number(data?.inputs?.T_c ?? T_c));
+      updateTegScene(
+        Number(data?.inputs?.T_h ?? T_h),
+        Number(data?.inputs?.T_c ?? T_c),
+        Number(resultados.I_A || 0),
+        Number(resultados.P_electrica_mW || 0)
+      );
+      state.singleVoltage = Number(resultados.V_teg_V || 0);
+      updateVoltEditor();
       pulsePower();
       drawChart();
     }
@@ -1307,15 +1480,24 @@
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") closeFormulasModal();
     });
+    els.tegMinus.addEventListener("click", () => {
+      state.tegSeries = clamp(state.tegSeries - 1, 1, 20);
+      updateVoltEditor();
+    });
+    els.tegPlus.addEventListener("click", () => {
+      state.tegSeries = clamp(state.tegSeries + 1, 1, 20);
+      updateVoltEditor();
+    });
+    els.deviceSelect.addEventListener("change", updateVoltEditor);
     window.addEventListener("resize", () => {
       resizeCanvases();
-      scaleThermoScene();
       drawChart();
     });
 
     async function init() {
       resizeCanvases();
       schedulePulse();
+      populateDeviceSelect();
       await loadDaySeries();
       state.currentHour = 12;
       els.timeSlider.value = "12.0";

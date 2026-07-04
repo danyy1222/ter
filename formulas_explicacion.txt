@@ -1,6 +1,136 @@
 ASPHALT-TEG SIMULATOR - EXPLICACION DE LAS FORMULAS
 =====================================================
 
+
+=====================================================
+PARTE 1: LA EXPLICACION FACIL (COMO SI TUVIERAS 8 ANOS)
+=====================================================
+Sin saltarnos ningun paso, aqui va el cuento completo de como se hace
+la electricidad en este proyecto, sin formulas todavia, solo con
+palabras simples y comparaciones.
+
+1) Todo esta hecho de bolitas chiquititas
+------------------------------------------
+Todo lo que existe (el aire, el asfalto, el cobre, tu mano) esta hecho
+de bolitas invisibles llamadas atomos. Adentro de esas bolitas hay
+otras bolitas todavia mas chiquitas llamadas electrones. En los
+metales (como el cobre), algunos electrones estan sueltos y se pueden
+mover de una bolita a otra. Cuando muchos electrones se mueven todos
+para el mismo lado al mismo tiempo, a eso le llamamos "electricidad".
+
+2) Que es el calor, en realidad
+------------------------------------------
+El calor no es una cosa magica: es que tan rapido se estan moviendo
+esas bolitas. Si algo esta MUY caliente, sus bolitas se mueven como
+locas, chocando para todos lados. Si algo esta frio, sus bolitas casi
+ni se mueven, estan tranquilas y quietas.
+
+3) El asfalto se cocina con el sol
+------------------------------------------
+Igual que una remera negra se pone bien caliente si la dejas al sol,
+el asfalto (que tambien es oscuro) absorbe muchisimo calor durante el
+dia. La parte de ARRIBA del asfalto (la superficie, la que toca el
+sol) se pone muy caliente: a eso le llamamos Th ("temperatura
+caliente"). Pero mas abajo, escondido bajo el pavimento, hay un
+material especial (PCM) que actua como una hielera: se mantiene mucho
+mas fresco. A esa parte fria le llamamos Tc ("temperatura fria").
+
+4) El truco: cuando un lado esta caliente y el otro frio, algo QUIERE moverse
+------------------------------------------------------------------------------
+Imagina un tobogan: si un lado esta bien arriba y el otro bien abajo,
+un nene que se sienta arriba se desliza solo, sin que nadie lo empuje,
+nada mas porque hay una diferencia de altura. Aca pasa algo parecido,
+pero con calor en vez de altura: cuando un lado de un material esta
+caliente y el otro frio AL MISMO TIEMPO, los electrones de adentro
+sienten como un "empujoncito" y empiezan a moverse solos desde el lado
+caliente hacia el lado frio. A este fenomeno un cientifico llamado
+Seebeck lo descubrio hace muchos anos, por eso se llama "efecto
+Seebeck". Cuanto mas grande es la diferencia de temperatura, mas fuerte
+es el empujoncito y mas electrones se mueven.
+
+5) El cobre es el "tobogan" que lleva el calor de un lado a otro
+------------------------------------------------------------------------------
+El cobre es un metal que deja pasar el calor muy rapido, como si fuera
+una autopista para el calor (mucho mas rapido que el asfalto o el
+aire). Por eso en este proyecto se usa una placa de cobre doblada en
+forma de "L": una parte de la L toca el asfalto caliente de arriba, y
+la otra parte de la L baja hasta abajo, cerca del disipador frio. El
+cobre agarra el calor de arriba y lo "carga" hasta abajo, como un
+mensajero llevando un paquete calentito.
+
+6) El TEG: la cajita magica
+------------------------------------------------------------------------------
+El TEG es una cajita chiquita hecha de un material especial. Si le
+pones un lado caliente (pegado al cobre que viene de arriba) y el otro
+lado frio (pegado al disipador de abajo) AL MISMO TIEMPO, esa cajita
+empuja a sus electrones a moverse todos hacia el mismo lado, como
+cuando muchos ninos en un tobogan inclinado empiezan a resbalar todos
+para abajo a la vez. Ese movimiento de electrones, todos juntos y en
+la misma direccion, ES la electricidad que despues usamos.
+
+7) El cable: una pista de carreras circular
+------------------------------------------------------------------------------
+Los electrones no desaparecen ni se gastan: dan toda la vuelta por un
+cable, como autitos en una pista circular de carreras, y vuelven al
+punto donde arrancaron. A ese circulo completo de cable se le llama
+"circuito". Si el circuito se corta en algun punto (como sacar un
+pedazo de la pista), los autitos ya no pueden dar la vuelta y la
+electricidad se detiene.
+
+8) La "carga": el trabajo que hacen los electrones en el camino
+------------------------------------------------------------------------------
+En algun punto de esa pista de carreras le ponemos algo que aproveche
+el movimiento de los electrones, por ejemplo un foquito (una lamparita)
+o un aparatito chiquito. Cuando los electrones pasan por ahi, le
+entregan su energia y hacen que el foco se encienda o el aparato
+funcione. A esa parte del circuito se le llama "la carga" (en las
+formulas se escribe R_L).
+
+9) Por que no se aprovecha TODA la electricidad (la resistencia)
+------------------------------------------------------------------------------
+Imagina que la pista de carreras no es perfectamente lisa, tiene
+baches y curvas. Esos baches frenan un poquito a los autitos, y esa
+frenada hace que se pierda un poco de energia en forma de calorcito
+dentro del cable, en vez de convertirse en electricidad util para el
+foco. A esos "baches" se les llama resistencia, y siempre hay un
+poquito, tanto en el cable como adentro del propio TEG.
+
+10) Por que hace falta MANTENER la diferencia de temperatura
+------------------------------------------------------------------------------
+Si dejaras el tobogan mucho tiempo sin que nadie lo incline, con el
+tiempo los dos lados se quedarian a la misma altura y nadie se
+deslizaria mas. Por eso el disipador de abajo, con su material PCM,
+tiene que quedarse fresco todo el tiempo (como un termo con hielo)
+mientras el sol sigue calentando la parte de arriba. Mientras haya
+diferencia entre "arriba caliente" y "abajo frio", los electrones
+seguiran moviendose y habra electricidad. Si en algun momento no hay
+sol (de noche, por ejemplo), arriba y abajo quedan casi a la misma
+temperatura, el empujoncito desaparece y la electricidad se para.
+
+11) El cuento completo, de un tiron
+------------------------------------------------------------------------------
+   El sol calienta el asfalto
+        -> arriba queda caliente (Th), abajo se mantiene frio (Tc)
+        -> la placa de cobre en forma de L lleva ese calor de
+           arriba hacia abajo
+        -> dentro de la cajita TEG, la diferencia de temperatura
+           empuja a los electrones a moverse todos para el mismo lado
+        -> eso ES electricidad, que viaja por el cable (el circuito)
+        -> en el camino enciende un foquito o carga un aparatito
+           chiquito (la carga, R_L)
+        -> los electrones dan toda la vuelta y regresan, listos para
+           repetir el viaje una y otra vez mientras siga habiendo sol
+           y siga habiendo diferencia de temperatura.
+
+Todo lo que viene despues de aca (Parte 2) es exactamente este mismo
+cuento, pero contado con numeros y formulas, para poder calcular
+"cuanta" electricidad se genera exactamente en cada momento del dia.
+
+
+=====================================================
+PARTE 2: LAS FORMULAS Y LOS NUMEROS (version tecnica)
+=====================================================
+
 IDEA GENERAL
 ------------
 El sistema aprovecha la diferencia de temperatura entre el asfalto
