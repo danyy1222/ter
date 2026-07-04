@@ -182,6 +182,12 @@
       color: var(--accent);
     }
 
+    .eyebrow-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .sky {
       min-height: 200px;
       height: 100%;
@@ -249,11 +255,13 @@
 
     .sun-dot {
       position: absolute;
-      width: clamp(14px, 4vmin, 32px);
-      height: clamp(14px, 4vmin, 32px);
-      border-radius: 50%;
-      background: radial-gradient(circle, #fff6d6, #ffb300 60%, transparent 100%);
-      box-shadow: 0 0 18px 6px rgba(255, 179, 0, var(--sun-glow, 0.6));
+      width: clamp(38px, 9vmin, 74px);
+      height: clamp(38px, 9vmin, 74px);
+      background-image: url("assets/sol.png");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: drop-shadow(0 0 14px rgba(255, 179, 0, var(--sun-glow, 0.6)));
       transform: translate(-50%, -50%);
       transition: left 0.4s ease, top 0.4s ease, opacity 0.4s ease;
       z-index: 2;
@@ -302,6 +310,19 @@
       opacity: 0.75;
     }
 
+    .dim-line,
+    .dim-tick {
+      stroke: #7d8590;
+      stroke-width: 1;
+    }
+
+    .dim-text {
+      font-family: "Segoe UI", sans-serif;
+      font-size: 9px;
+      fill: #c9d1d9;
+      letter-spacing: 0.02em;
+    }
+
     .teg-chip {
       fill: #1c2128;
       stroke: #4a5568;
@@ -319,25 +340,7 @@
     .electron {
       fill: #fff59d;
       filter: drop-shadow(0 0 4px rgba(255, 245, 157, 0.85));
-      animation: electronflow 2.2s linear infinite;
       opacity: 0;
-    }
-
-    #electronGroup .electron:nth-child(1) { animation-delay: 0s; }
-    #electronGroup .electron:nth-child(2) { animation-delay: 0.5s; }
-    #electronGroup .electron:nth-child(3) { animation-delay: 1s; }
-    #electronGroup .electron:nth-child(4) { animation-delay: 1.5s; }
-
-    #electronGroup.paused .electron {
-      animation-play-state: paused;
-      opacity: 0 !important;
-    }
-
-    @keyframes electronflow {
-      0% { cx: 378px; opacity: 0; }
-      10% { opacity: 1; }
-      85% { opacity: 1; }
-      100% { cx: 202px; opacity: 0; }
     }
 
     .bulb-glow {
@@ -348,6 +351,121 @@
       fill: none;
       stroke-width: 1.5;
       transition: stroke 0.4s ease, opacity 0.4s ease;
+    }
+
+    .bulb-glass {
+      fill: rgba(255, 255, 255, 0.05);
+      stroke: #6b6b6b;
+      stroke-width: 1.5;
+    }
+
+    .bulb-base {
+      fill: #7d8590;
+      stroke: #4a4a4a;
+      stroke-width: 1;
+    }
+
+    .bulb-thread {
+      stroke: #3a3a3a;
+      stroke-width: 1;
+    }
+
+    .phone-body {
+      fill: #1c2128;
+      stroke: #4a5568;
+      stroke-width: 1.5;
+    }
+
+    .phone-screen {
+      fill: #0d1117;
+      stroke: #30363d;
+      stroke-width: 1;
+    }
+
+    .phone-speaker,
+    .phone-home {
+      fill: #4a5568;
+    }
+
+    .draggable-comp {
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .draggable-comp.dragging {
+      cursor: grabbing;
+      filter: drop-shadow(0 0 8px rgba(255, 179, 0, 0.55));
+    }
+
+    .battery-body {
+      fill: #1c2128;
+      stroke: #4a5568;
+      stroke-width: 1.5;
+    }
+
+    .battery-nub {
+      fill: #4a5568;
+    }
+
+    .battery-fill {
+      fill: #69f0ae;
+      opacity: 0.3;
+      transition: opacity 0.3s ease;
+    }
+
+    .battery-fill.charging {
+      animation: batterypulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes batterypulse {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 0.95; }
+    }
+
+    .drag-hint {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      z-index: 9;
+      padding: 5px 10px;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .scene-toolbar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 9;
+      display: flex;
+      gap: 6px;
+    }
+
+    .scene-btn {
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .scene-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .scene-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
 
     .info-row {
@@ -544,6 +662,67 @@
       font-weight: 700;
       color: var(--good);
       white-space: nowrap;
+    }
+
+    .build-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 14px 18px 4px;
+    }
+
+    .build-group-title:first-child {
+      margin-top: 10px;
+    }
+
+    .build-list {
+      display: flex;
+      flex-direction: column;
+      padding: 0 18px 16px;
+    }
+
+    .build-item {
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .build-item:last-child {
+      border-bottom: none;
+    }
+
+    .build-item-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .build-item-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .build-item-spec {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--good);
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .build-item-desc {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+
+    .build-item-desc .live {
+      color: var(--accent-2);
+      font-weight: 700;
     }
 
     .right {
@@ -809,8 +988,11 @@
 
       <section class="center-col">
         <div class="eyebrow">
-          <span>⚡ SIMULADOR ASPHALT-TEG</span>
-          <button class="formulas-btn" id="formulasBtn" type="button">🧮 Ver fórmulas</button>
+          <span>SIMULADOR ASPHALT-TEG</span>
+          <div class="eyebrow-actions">
+            <button class="formulas-btn" id="buildBtn" type="button">Ver construcción</button>
+            <button class="formulas-btn" id="formulasBtn" type="button">Ver fórmulas</button>
+          </div>
         </div>
 
         <div class="sky">
@@ -820,6 +1002,11 @@
               <span class="status-text" id="backendStatusText">Modo offline</span>
             </div>
             <div class="sky-badge" id="phaseBadge">Fase: Noche — Sol: 0.0 h</div>
+            <div class="scene-toolbar">
+              <button class="scene-btn" id="addBulbBtn" type="button">+ Farola</button>
+              <button class="scene-btn" id="addBatteryBtn" type="button">+ Celular</button>
+            </div>
+            <div class="drag-hint">Arrastra los componentes · doble clic quita los que agregues</div>
 
             <div class="sun-dot" id="sunDot"></div>
 
@@ -836,41 +1023,100 @@
                   </radialGradient>
                 </defs>
 
-                <rect x="40" y="20" width="560" height="50" rx="6" fill="#26221f" stroke="#3a332c" stroke-width="2" />
+                <rect x="40" y="20" width="560" height="50" rx="6" fill="#26221f" stroke="#3a332c" stroke-width="2">
+                  <title>Losa asfaltica: 6 cm de espesor total (mezcla densa en caliente). Escala real evaluada: seccion de carretera de 10 m de ancho x 1000 m de largo. Absorbe el calor del sol; no conduce bien el calor por si sola, por eso hace falta la placa de cobre.</title>
+                </rect>
                 <rect x="40" y="20" width="560" height="10" rx="4" fill="#4a4038" opacity="0.55" />
                 <text x="320" y="49" class="scene-label" text-anchor="middle">ASFALTO</text>
+                <text x="48" y="65" class="scene-label tiny">50×20 cm</text>
 
-                <path id="copperPath" d="M400,70 L560,70 L560,92 L422,92 L422,230 L400,230 Z" fill="url(#copperGrad)" stroke="#8a5a2b" stroke-width="1.5" />
+                <g class="dim-group">
+                  <line class="dim-tick" x1="606" y1="20" x2="614" y2="20" />
+                  <line class="dim-tick" x1="606" y1="70" x2="614" y2="70" />
+                  <line class="dim-line" x1="610" y1="20" x2="610" y2="70" />
+                  <text x="616" y="48" class="dim-text">6 cm</text>
+                </g>
+
+                <path id="copperPath" d="M400,70 L560,70 L560,92 L422,92 L422,230 L400,230 Z" fill="url(#copperGrad)" stroke="#8a5a2b" stroke-width="1.5">
+                  <title>Placa de cobre en forma de L (diseño optimo, menor perdida de energia que la forma en Z): segmento horizontal 50 cm + segmento vertical 18 cm, ancho 20 cm, espesor 1.5 mm, k = 385 W/(m·K). Embebida a 3 cm bajo la superficie. Lleva el calor desde el asfalto hasta el modulo TEG.</title>
+                </path>
                 <text x="480" y="84" class="scene-label light" text-anchor="middle">COBRE (L)</text>
                 <text id="thValue" x="480" y="66" class="scene-label value hot" text-anchor="middle">0.0°C</text>
+                <text x="565" y="84" class="scene-label tiny">20×0,15 cm</text>
 
-                <rect id="tegChip" class="teg-chip" x="378" y="230" width="66" height="28" rx="3" />
-                <text x="411" y="248" class="scene-label tiny" text-anchor="middle" fill="#e6ebf1">TEG</text>
+                <g class="dim-group">
+                  <line class="dim-tick" x1="400" y1="98" x2="400" y2="106" />
+                  <line class="dim-tick" x1="560" y1="98" x2="560" y2="106" />
+                  <line class="dim-line" x1="400" y1="102" x2="560" y2="102" />
+                  <text x="480" y="114" class="dim-text" text-anchor="middle">50 cm</text>
+                </g>
+
+                <g class="dim-group">
+                  <line class="dim-tick" x1="436" y1="98" x2="444" y2="98" />
+                  <line class="dim-tick" x1="436" y1="222" x2="444" y2="222" />
+                  <line class="dim-line" x1="440" y1="98" x2="440" y2="222" />
+                  <text x="447" y="163" class="dim-text">18 cm</text>
+                </g>
+
+                <rect id="tegChip" class="teg-chip" x="378" y="230" width="66" height="28" rx="3">
+                  <title>Modulo termoelectrico (TEG): alpha = 0.05 V/°C, resistencia interna R = 2.0 Ω, K = 0.6 W/°C, 4 x 4 x 0.35 cm cada uno (elementos P-N en serie). El prototipo usa 2 modulos, acoplados con pasta termica al cobre y al disipador.</title>
+                </rect>
+                <text x="411" y="241" class="scene-label tiny" text-anchor="middle" fill="#e6ebf1">TEG</text>
+                <text x="411" y="252" class="scene-label tiny" text-anchor="middle" fill="#e6ebf1" font-size="7">4×4×0,35cm ×2</text>
 
                 <g id="heatsinkFins">
+                  <title>Disipador de aluminio: 18 x 10 x 5 cm, relleno por completo con material de cambio de fase microencapsulado (MPCM) en polvo, que mantiene el lado frio estable cerca de 18°C absorbiendo calor latente.</title>
                   <rect class="heatsink-fin" x="379" y="258" width="8" height="28" rx="1" />
                   <rect class="heatsink-fin" x="393" y="258" width="8" height="28" rx="1" />
                   <rect class="heatsink-fin" x="407" y="258" width="8" height="28" rx="1" />
                   <rect class="heatsink-fin" x="421" y="258" width="8" height="28" rx="1" />
                   <rect class="heatsink-fin" x="435" y="258" width="8" height="28" rx="1" />
                 </g>
-                <text x="411" y="298" class="scene-label tiny" text-anchor="middle">DISIPADOR</text>
+                <text x="411" y="298" class="scene-label tiny" text-anchor="middle">DISIPADOR · 18×10×5 cm</text>
                 <text id="tcValue" x="411" y="219" class="scene-label value cold" text-anchor="middle">0.0°C</text>
 
-                <path class="wire-line" d="M378,224 L200,224 L200,150 L168,150" />
-                <path class="wire-line" d="M378,250 L215,250 L215,210 L168,210" />
+                <path class="wire-line" d="M444,244 L452,244" />
+                <rect id="regulatorBox" x="452" y="234" width="36" height="20" rx="3" fill="#1c2128" stroke="#4a5568" stroke-width="1.5">
+                  <title>Regulador de voltaje: estabiliza y adapta el voltaje irregular que entrega el TEG para poder cargar la batería de forma segura.</title>
+                </rect>
+                <text x="470" y="247" class="scene-label tiny" text-anchor="middle" fill="#e6ebf1" font-size="7">REG</text>
 
-                <g id="electronGroup">
-                  <circle class="electron" cy="224" r="4"></circle>
-                  <circle class="electron" cy="224" r="4"></circle>
-                  <circle class="electron" cy="224" r="4"></circle>
-                  <circle class="electron" cy="224" r="4"></circle>
+                <path id="wireBulb" class="wire-line" d="" />
+                <g id="bulbElectronGroup">
+                  <circle class="electron" r="4"></circle>
+                  <circle class="electron" r="4"></circle>
+                  <circle class="electron" r="4"></circle>
                 </g>
 
-                <circle id="bulbGlowOuter" class="bulb-glow" cx="150" cy="180" r="34" fill="url(#bulbGrad)" opacity="0.1" />
-                <circle cx="150" cy="180" r="15" fill="#2c2c2c" stroke="#6b6b6b" stroke-width="2" />
-                <path id="bulbFilament" class="bulb-filament" d="M143,180 L148,173 L152,187 L157,180" stroke="#8a7a3a" />
-                <text x="150" y="222" class="scene-label tiny" text-anchor="middle">CARGA (R_L)</text>
+                <path id="wireBattery" class="wire-line" d="" />
+                <g id="batteryElectronGroup">
+                  <circle class="electron" r="4"></circle>
+                  <circle class="electron" r="4"></circle>
+                  <circle class="electron" r="4"></circle>
+                </g>
+
+                <g id="bulbGroup" class="draggable-comp">
+                  <title>Farola de alumbrado público (carga ilustrativa, ~20 mW): se alimenta de la batería, no directo del TEG. Arrástrala para moverla.</title>
+                  <circle id="bulbGlowOuter" class="bulb-glow" cx="150" cy="170" r="32" fill="url(#bulbGrad)" opacity="0.1" />
+                  <circle class="bulb-glass" cx="150" cy="170" r="14" />
+                  <path class="bulb-glass" d="M141,182 L145,190 L155,190 L159,182 Z" />
+                  <rect class="bulb-base" x="145" y="190" width="10" height="9" rx="1" />
+                  <line class="bulb-thread" x1="145" y1="193" x2="155" y2="193" />
+                  <line class="bulb-thread" x1="145" y1="196" x2="155" y2="196" />
+                  <rect class="bulb-base" x="148.5" y="199" width="3" height="15" />
+                  <rect class="bulb-base" x="142" y="214" width="16" height="3" rx="1" />
+                  <path id="bulbFilament" class="bulb-filament" d="M144,164 L147,172 L150,164 L153,172 L156,164" stroke="#8a7a3a" />
+                  <text x="150" y="230" class="scene-label tiny" text-anchor="middle">FAROLA · ~20 mW</text>
+                </g>
+
+                <g id="batteryGroup" class="draggable-comp">
+                  <title>Batería principal: acumula la energía generada por el TEG a través del regulador. Las farolas y celulares se cargan desde acá. Arrástrala para moverla; elegí el tipo en el panel derecho.</title>
+                  <rect class="battery-nub" x="522" y="160" width="16" height="10" rx="2" />
+                  <rect class="battery-body" x="507" y="168" width="46" height="74" rx="4" />
+                  <rect id="batteryFill" class="battery-fill" x="511" y="208" width="34" height="30" rx="2" />
+                  <text x="530" y="254" class="scene-label tiny" text-anchor="middle">BATERÍA</text>
+                  <text id="batteryLabelSvg" x="530" y="266" class="scene-label tiny" text-anchor="middle">3.7V · 3000mAh</text>
+                </g>
               </svg>
             </div>
           </div>
@@ -902,7 +1148,7 @@
         </div>
 
         <div class="volt-card" id="voltCard">
-          <div class="volt-title">🔌 Editor de voltaje</div>
+          <div class="volt-title">Editor de voltaje</div>
           <div class="volt-stepper">
             <button class="volt-btn" id="tegMinus" type="button" aria-label="Menos TEG en serie">−</button>
             <div class="volt-count"><span id="tegCount">2</span><small>TEG en serie</small></div>
@@ -911,6 +1157,28 @@
           <div class="volt-total">Voltaje total: <strong id="voltTotal">0.00 V</strong></div>
           <select class="volt-select" id="deviceSelect"></select>
           <div class="volt-result" id="voltResult">Elige un dispositivo para comparar.</div>
+        </div>
+
+        <div class="volt-card" id="battCard">
+          <div class="volt-title">Simulador de carga de batería</div>
+          <select class="volt-select" id="batterySelect"></select>
+          <div class="volt-result" id="batteryResult">Selecciona una batería.</div>
+        </div>
+
+        <div class="volt-card" id="streetlightCard">
+          <div class="volt-title">Alumbrado público nocturno</div>
+          <div class="micro">A escala de 1 km de carretera (10 m de ancho), según el paper.</div>
+          <div class="volt-stepper">
+            <button class="volt-btn" id="lampWattMinus" type="button" aria-label="Menos watts por farola">−</button>
+            <div class="volt-count"><span id="lampWattValue">100</span><small>W por farola</small></div>
+            <button class="volt-btn" id="lampWattPlus" type="button" aria-label="Mas watts por farola">+</button>
+          </div>
+          <div class="volt-stepper">
+            <button class="volt-btn" id="lampHoursMinus" type="button" aria-label="Menos horas por noche">−</button>
+            <div class="volt-count"><span id="lampHoursValue">10</span><small>horas de uso / noche</small></div>
+            <button class="volt-btn" id="lampHoursPlus" type="button" aria-label="Mas horas por noche">+</button>
+          </div>
+          <div class="volt-result" id="streetlightResult">Calculando...</div>
         </div>
 
         <div class="mini-grid">
@@ -948,10 +1216,149 @@
     </div>
   </div>
 
+  <div class="modal-overlay hidden" id="buildModalOverlay">
+    <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="buildModalTitle">
+      <div class="modal-titlebar">
+        <span id="buildModalTitle">Construcción del sistema</span>
+        <button class="modal-close" id="buildModalClose" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="build-group-title">Pista / escala real</div>
+        <div class="build-list">
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Sección de carretera evaluada</span>
+              <span class="build-item-spec">10 m × 1000 m</span>
+            </div>
+            <div class="build-item-desc">Escala usada para proyectar la instalación real (~2900 W promedio, 23,2 kWh/día con placas de 0,5 × 0,2 m).</div>
+          </div>
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Losa asfáltica</span>
+              <span class="build-item-spec">6 cm de espesor</span>
+            </div>
+            <div class="build-item-desc">Mezcla asfáltica convencional densa, gradada en caliente.</div>
+          </div>
+        </div>
+
+        <div class="build-group-title">Sistema colector (cobre en L)</div>
+        <div class="build-list">
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Placa de cobre, forma L</span>
+              <span class="build-item-spec">50 cm + 18 cm · 20 cm ancho · 0,15 cm grosor</span>
+            </div>
+            <div class="build-item-desc">Segmento horizontal (50 cm, colector en el asfalto) + segmento vertical (18 cm, baja hacia el subsuelo). Diseño óptimo: menor pérdida de energía que la forma en Z, según análisis de elementos finitos.</div>
+          </div>
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Profundidad de embebido</span>
+              <span class="build-item-spec">3 cm bajo la superficie</span>
+            </div>
+            <div class="build-item-desc">A 2-3 cm se protege el componente de mantenimientos como el fresado y se logra una excelente captura térmica.</div>
+          </div>
+        </div>
+
+        <div class="build-group-title">Módulo de generación eléctrica</div>
+        <div class="build-list">
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Generadores termoeléctricos (TEG)</span>
+              <span class="build-item-spec">2 × 4 × 4 × 0,35 cm</span>
+            </div>
+            <div class="build-item-desc">Elementos P-N conectados en serie. Pasta térmica acopla el lado caliente al cobre y el lado frío al disipador.</div>
+          </div>
+        </div>
+
+        <div class="build-group-title">Módulo de refrigeración</div>
+        <div class="build-list">
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Disipador de aluminio</span>
+              <span class="build-item-spec">18 × 10 × 5 cm</span>
+            </div>
+            <div class="build-item-desc">Absorbe el calor residual del lado frío de los TEG.</div>
+          </div>
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">MPCM (material de cambio de fase)</span>
+              <span class="build-item-spec">en polvo, rellena el disipador</span>
+            </div>
+            <div class="build-item-desc">Mantiene la temperatura del disipador estable en ~18 °C absorbiendo calor latente.</div>
+          </div>
+        </div>
+
+        <div class="build-group-title">Caja de aislamiento térmico (3 capas)</div>
+        <div class="build-list">
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Aerogel (interna)</span>
+              <span class="build-item-spec">bloque 20 × 12 × 6 cm</span>
+            </div>
+            <div class="build-item-desc">1 cm de grosor cubriendo el disipador (0,5 cm en la cara hacia los TEG).</div>
+          </div>
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Espuma / poliestireno (intermedia)</span>
+              <span class="build-item-spec">caja 24 × 16 × 8 cm</span>
+            </div>
+            <div class="build-item-desc">2 cm de grosor.</div>
+          </div>
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">PVC (externa)</span>
+              <span class="build-item-spec">caja 26 × 18 × 9 cm</span>
+            </div>
+            <div class="build-item-desc">1 cm de grosor, expuesta directamente al suelo. Todo el conjunto se entierra junto al borde del pavimento.</div>
+          </div>
+        </div>
+
+        <div class="build-group-title">Sensores y medición (en vivo con la hora actual)</div>
+        <div class="build-list">
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Superficie del asfalto</span>
+              <span class="build-item-spec" id="sensorAsfalto">0.0°C</span>
+            </div>
+            <div class="build-item-desc">Temperatura usada como T_h en el modelo.</div>
+          </div>
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Placa colectora de cobre</span>
+              <span class="build-item-spec" id="sensorCobre">0.0°C</span>
+            </div>
+            <div class="build-item-desc">El modelo la asume igual a la temperatura de la superficie (T_h), no simula la caída de temperatura en los 3 cm de asfalto que la cubren.</div>
+          </div>
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Interior del disipador</span>
+              <span class="build-item-spec" id="sensorDisipador">0.0°C</span>
+            </div>
+            <div class="build-item-desc">Temperatura usada como T_c en el modelo.</div>
+          </div>
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Suelo a 10 cm de profundidad</span>
+              <span class="build-item-spec">34 – 38 °C</span>
+            </div>
+            <div class="build-item-desc">Valor de referencia medido en el estudio; este simulador no lo calcula en vivo.</div>
+          </div>
+          <div class="build-item">
+            <div class="build-item-head">
+              <span class="build-item-name">Medidor de potencia</span>
+              <span class="build-item-spec">Gossen-Metrahit®</span>
+            </div>
+            <div class="build-item-desc">Equipo real usado en el estudio para registrar tensión, corriente y potencia eléctrica producida.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay hidden" id="formulaModalOverlay">
     <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="formulaModalTitle">
       <div class="modal-titlebar">
-        <span id="formulaModalTitle">🧮 Fórmulas aplicadas</span>
+        <span id="formulaModalTitle">Fórmulas aplicadas</span>
         <button class="modal-close" id="formulaModalClose" type="button" aria-label="Cerrar">✕</button>
       </div>
       <div class="modal-body">
@@ -980,6 +1387,18 @@
       currentData: null,
       tegSeries: 2,
       singleVoltage: 0,
+      lastPowerMw: 0,
+      chargingFlow: false,
+      chargeFlowSpeed: 2.6,
+      dischargeFlow: false,
+      dischargeFlowSpeed: 1.8,
+      batteryChargeWh: 0,
+      batteryCapacityWh: 0,
+      dayCycleSeries: [],
+      dayCycleLoadW: { phoneW: 0, farolaW: 0 },
+      roadDailyKwh: 23.2,
+      lampWatt: 100,
+      lampHours: 10,
     };
 
     const els = {
@@ -1002,6 +1421,12 @@
       formulasBtn: document.getElementById("formulasBtn"),
       formulaModalOverlay: document.getElementById("formulaModalOverlay"),
       formulaModalClose: document.getElementById("formulaModalClose"),
+      buildBtn: document.getElementById("buildBtn"),
+      buildModalOverlay: document.getElementById("buildModalOverlay"),
+      buildModalClose: document.getElementById("buildModalClose"),
+      sensorAsfalto: document.getElementById("sensorAsfalto"),
+      sensorCobre: document.getElementById("sensorCobre"),
+      sensorDisipador: document.getElementById("sensorDisipador"),
       backendStatus: document.getElementById("backendStatus"),
       backendStatusText: document.getElementById("backendStatusText"),
       skyShell: document.getElementById("skyShell"),
@@ -1010,9 +1435,17 @@
       tcValue: document.getElementById("tcValue"),
       copperStopHot: document.getElementById("copperStopHot"),
       copperStopCold: document.getElementById("copperStopCold"),
-      electronGroup: document.getElementById("electronGroup"),
       bulbGlowOuter: document.getElementById("bulbGlowOuter"),
       bulbFilament: document.getElementById("bulbFilament"),
+      sceneSvg: document.getElementById("sceneSvg"),
+      wireBulb: document.getElementById("wireBulb"),
+      wireBattery: document.getElementById("wireBattery"),
+      bulbGroup: document.getElementById("bulbGroup"),
+      batteryGroup: document.getElementById("batteryGroup"),
+      bulbElectronGroup: document.getElementById("bulbElectronGroup"),
+      batteryElectronGroup: document.getElementById("batteryElectronGroup"),
+      batteryFill: document.getElementById("batteryFill"),
+      batteryLabelSvg: document.getElementById("batteryLabelSvg"),
       powerChart: document.getElementById("powerChart"),
       microCopy: document.getElementById("microCopy"),
       voltCard: document.getElementById("voltCard"),
@@ -1022,6 +1455,17 @@
       voltTotal: document.getElementById("voltTotal"),
       deviceSelect: document.getElementById("deviceSelect"),
       voltResult: document.getElementById("voltResult"),
+      batterySelect: document.getElementById("batterySelect"),
+      batteryResult: document.getElementById("batteryResult"),
+      addBulbBtn: document.getElementById("addBulbBtn"),
+      addBatteryBtn: document.getElementById("addBatteryBtn"),
+      lampWattMinus: document.getElementById("lampWattMinus"),
+      lampWattPlus: document.getElementById("lampWattPlus"),
+      lampWattValue: document.getElementById("lampWattValue"),
+      lampHoursMinus: document.getElementById("lampHoursMinus"),
+      lampHoursPlus: document.getElementById("lampHoursPlus"),
+      lampHoursValue: document.getElementById("lampHoursValue"),
+      streetlightResult: document.getElementById("streetlightResult"),
     };
 
     const DEVICES = [
@@ -1034,6 +1478,28 @@
       { name: "Microcontrolador 5V (Arduino Uno)", volts: 5.0 },
       { name: "Cargar un celular (USB)", volts: 5.0 },
     ];
+
+    const BATTERIES = [
+      { name: "Pila AA", volts: 1.2, mah: 2000 },
+      { name: "Pila 9V", volts: 9.0, mah: 500 },
+      { name: "Batería Li-ion de celular", volts: 3.7, mah: 3000 },
+      { name: "Power bank pequeño", volts: 5.0, mah: 10000 },
+    ];
+
+    const REGULATOR_OUT_ANCHOR = { x: 488, y: 244 };
+    const MAX_EXTRA_COMPS = 4;
+    const BULB_DRAIN_W = 0.02;
+    const PHONE_DRAIN_W = 0.15;
+    const PHONE_CAPACITY_WH = (3.7 * 3000) / 1000;
+    const DAY_CYCLE_STEP_H = 0.25;
+
+    const scene = {
+      bulbs: [],
+      batteries: [],
+    };
+
+    let activeDrag = null;
+    let nextCompId = 1;
 
     const ctxChart = els.powerChart.getContext("2d");
 
@@ -1145,23 +1611,547 @@
       return `rgb(${r},${g},${bl})`;
     }
 
+    function updateSensorReadings(T_h, T_c) {
+      els.sensorAsfalto.textContent = `${fmt2(T_h)}°C`;
+      els.sensorCobre.textContent = `${fmt2(T_h)}°C`;
+      els.sensorDisipador.textContent = `${fmt2(T_c)}°C`;
+    }
+
     function updateTegScene(T_h, T_c, I_A, P_mW) {
       els.thValue.textContent = `${fmt2(T_h)}°C`;
       els.tcValue.textContent = `${fmt2(T_c)}°C`;
+      updateSensorReadings(T_h, T_c);
       els.copperStopHot.setAttribute("stop-color", tempToColor(T_h));
       els.copperStopCold.setAttribute("stop-color", tempToColor(T_c));
 
-      const flowing = Number(I_A) > 0.0005;
-      els.electronGroup.classList.toggle("paused", !flowing);
-      const speed = flowing ? clamp(2.6 - Number(I_A) * 8, 0.7, 2.6) : 2.6;
-      els.electronGroup.querySelectorAll(".electron").forEach((dot) => {
-        dot.style.animationDuration = `${speed}s`;
-      });
+      const chargeRoom = state.batteryCapacityWh - state.batteryChargeWh > 0.00001;
+      state.chargingFlow = Number(I_A) > 0.0005 && chargeRoom;
+      state.chargeFlowSpeed = state.chargingFlow ? clamp(2.6 - Number(I_A) * 8, 0.7, 2.6) : 2.6;
+    }
 
-      const glow = clamp(Number(P_mW) / 25, 0.04, 1);
-      els.bulbGlowOuter.style.opacity = glow.toFixed(2);
-      els.bulbFilament.style.stroke = glow > 0.5 ? "#fff59d" : "#8a7a3a";
-      els.bulbFilament.style.opacity = clamp(0.3 + glow, 0.3, 1).toFixed(2);
+    function isNightHour(hour) {
+      const h = ((hour % 24) + 24) % 24;
+      return h < 6 || h >= 19;
+    }
+
+    function updateLoadsGlow(hour) {
+      const lit = isNightHour(hour) && state.batteryChargeWh > 0.00001;
+      const glow = lit ? 0.85 : 0.04;
+      scene.bulbs.forEach((inst) => {
+        inst.glowEl.style.opacity = glow.toFixed(2);
+        inst.filamentEl.style.stroke = lit ? "#fff59d" : "#8a7a3a";
+        inst.filamentEl.style.opacity = lit ? "1" : "0.3";
+      });
+    }
+
+    function updatePhoneChargeLabels() {
+      const hasCharge = state.batteryChargeWh > 0.00001;
+      const hours = PHONE_CAPACITY_WH / PHONE_DRAIN_W;
+      const text = hasCharge ? `~${fmtHoursMin(hours)} para cargar` : "sin carga para cargar";
+      scene.batteries.slice(1).forEach((inst) => {
+        if (inst.chargeTimeEl) inst.chargeTimeEl.textContent = text;
+      });
+    }
+
+    function svgPoint(clientX, clientY) {
+      const svg = els.sceneSvg;
+      const pt = svg.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return { x: clientX, y: clientY };
+      const transformed = pt.matrixTransform(ctm.inverse());
+      return { x: transformed.x, y: transformed.y };
+    }
+
+    function elbowPoints(x1, y1, x2, y2) {
+      const midX = (x1 + x2) / 2;
+      return [
+        { x: x1, y: y1 },
+        { x: midX, y: y1 },
+        { x: midX, y: y2 },
+        { x: x2, y: y2 },
+      ];
+    }
+
+    function pointsToD(points) {
+      return points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    }
+
+    function pathLength(points) {
+      let total = 0;
+      for (let i = 0; i < points.length - 1; i += 1) {
+        total += Math.hypot(points[i + 1].x - points[i].x, points[i + 1].y - points[i].y);
+      }
+      return total;
+    }
+
+    function pointAtDistance(points, dist) {
+      let remaining = dist;
+      for (let i = 0; i < points.length - 1; i += 1) {
+        const a = points[i];
+        const b = points[i + 1];
+        const segLen = Math.hypot(b.x - a.x, b.y - a.y);
+        if (remaining <= segLen || i === points.length - 2) {
+          const t = segLen > 0 ? clamp(remaining / segLen, 0, 1) : 0;
+          return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+        }
+        remaining -= segLen;
+      }
+      return points[points.length - 1];
+    }
+
+    function redrawWires() {
+      const mainBattery = scene.batteries[0];
+      if (!mainBattery) return;
+
+      const batteryPos = { x: mainBattery.nativeX + mainBattery.dx, y: mainBattery.nativeY + mainBattery.dy };
+      mainBattery.wirePoints = elbowPoints(REGULATOR_OUT_ANCHOR.x, REGULATOR_OUT_ANCHOR.y, batteryPos.x, batteryPos.y);
+      mainBattery.wireEl.setAttribute("d", pointsToD(mainBattery.wirePoints));
+
+      scene.bulbs.forEach((inst) => {
+        const target = { x: inst.nativeX + inst.dx, y: inst.nativeY + inst.dy };
+        inst.wirePoints = elbowPoints(batteryPos.x, batteryPos.y, target.x, target.y);
+        inst.wireEl.setAttribute("d", pointsToD(inst.wirePoints));
+      });
+      scene.batteries.slice(1).forEach((inst) => {
+        const target = { x: inst.nativeX + inst.dx, y: inst.nativeY + inst.dy };
+        inst.wirePoints = elbowPoints(batteryPos.x, batteryPos.y, target.x, target.y);
+        inst.wireEl.setAttribute("d", pointsToD(inst.wirePoints));
+      });
+    }
+
+    function onDragPointerDown(comp, groupEl) {
+      return function (event) {
+        event.preventDefault();
+        activeDrag = {
+          comp,
+          groupEl,
+          startClientX: event.clientX,
+          startClientY: event.clientY,
+          startDx: comp.dx,
+          startDy: comp.dy,
+        };
+        groupEl.classList.add("dragging");
+      };
+    }
+
+    function onDragPointerMove(event) {
+      if (!activeDrag) return;
+      const p0 = svgPoint(activeDrag.startClientX, activeDrag.startClientY);
+      const p1 = svgPoint(event.clientX, event.clientY);
+      activeDrag.comp.dx = activeDrag.startDx + (p1.x - p0.x);
+      activeDrag.comp.dy = activeDrag.startDy + (p1.y - p0.y);
+      activeDrag.groupEl.setAttribute("transform", `translate(${activeDrag.comp.dx.toFixed(1)},${activeDrag.comp.dy.toFixed(1)})`);
+      redrawWires();
+    }
+
+    function onDragPointerUp() {
+      if (activeDrag) activeDrag.groupEl.classList.remove("dragging");
+      activeDrag = null;
+    }
+
+    function animateElectrons(timestamp) {
+      const updateInstance = (inst) => {
+        if (!inst.wirePoints) return;
+        const flowing = inst.flowGroup === "charge" ? state.chargingFlow : state.dischargeFlow;
+        const speed = inst.flowGroup === "charge" ? state.chargeFlowSpeed : state.dischargeFlowSpeed;
+        if (!flowing) {
+          inst.electronDots.forEach((dot) => dot.setAttribute("opacity", "0"));
+          return;
+        }
+        const len = pathLength(inst.wirePoints);
+        inst.electronDots.forEach((dot, i) => {
+          const phase = i / inst.electronDots.length;
+          const t = ((timestamp / 1000 / speed) + phase) % 1;
+          const point = pointAtDistance(inst.wirePoints, t * len);
+          dot.setAttribute("cx", point.x.toFixed(1));
+          dot.setAttribute("cy", point.y.toFixed(1));
+          dot.setAttribute("opacity", t < 0.06 || t > 0.94 ? "0" : "1");
+        });
+      };
+      scene.bulbs.forEach(updateInstance);
+      scene.batteries.forEach(updateInstance);
+      requestAnimationFrame(animateElectrons);
+    }
+
+    function populateBatterySelect() {
+      els.batterySelect.innerHTML = BATTERIES.map((b, i) => `<option value="${i}">${b.name} (${b.volts}V, ${b.mah}mAh)</option>`).join("");
+    }
+
+    function fmtHoursMin(hours) {
+      if (!isFinite(hours) || hours < 0) return "—";
+      let h = Math.floor(hours);
+      let m = Math.round((hours - h) * 60);
+      if (m === 60) {
+        h += 1;
+        m = 0;
+      }
+      return `${h} h ${m} min`;
+    }
+
+    function currentBattery() {
+      return BATTERIES[Number(els.batterySelect.value || 0)] || BATTERIES[0];
+    }
+
+    function loadCounts() {
+      return {
+        bulbCount: scene.bulbs.length,
+        phoneCount: Math.max(0, scene.batteries.length - 1),
+      };
+    }
+
+    function interpolateSeriesPower(hour) {
+      const series = state.daySeries;
+      if (!series || !series.length) return 0;
+      const minHour = series[0].hour;
+      const maxHour = series[series.length - 1].hour;
+      if (hour < minHour || hour > maxHour) return 0;
+      for (let i = 0; i < series.length - 1; i += 1) {
+        const a = series[i];
+        const b = series[i + 1];
+        if (hour >= a.hour && hour <= b.hour) {
+          const t = (hour - a.hour) / (b.hour - a.hour || 1);
+          return a.power_mW + (b.power_mW - a.power_mW) * t;
+        }
+      }
+      return series[series.length - 1].power_mW;
+    }
+
+    function recomputeDayCycle() {
+      const battery = currentBattery();
+      state.batteryCapacityWh = (battery.volts * battery.mah) / 1000;
+      const mainBattery = scene.batteries[0];
+      if (mainBattery?.labelEl) mainBattery.labelEl.textContent = `${battery.volts}V · ${battery.mah}mAh`;
+
+      const { bulbCount, phoneCount } = loadCounts();
+      const phoneW = phoneCount * PHONE_DRAIN_W;
+      const farolaW = bulbCount * BULB_DRAIN_W;
+      const capacity = state.batteryCapacityWh;
+
+      let charge = 0;
+      let series = [];
+      for (let cycle = 0; cycle < 8; cycle += 1) {
+        series = [];
+        for (let h = 0; h < 24; h += DAY_CYCLE_STEP_H) {
+          const genW = interpolateSeriesPower(h) / 1000;
+          const loadW = phoneW + (isNightHour(h) ? farolaW : 0);
+          charge = clamp(charge + (genW - loadW) * DAY_CYCLE_STEP_H, 0, capacity);
+          series.push({ hour: h, chargeWh: charge });
+        }
+      }
+      state.dayCycleSeries = series;
+      state.dayCycleLoadW = { phoneW, farolaW };
+      refreshBatteryForHour(state.currentHour);
+    }
+
+    function chargeAtHour(hour) {
+      const series = state.dayCycleSeries;
+      if (!series || !series.length) return 0;
+      const h = ((hour % 24) + 24) % 24;
+      let closest = series[0];
+      let bestDiff = Infinity;
+      for (const point of series) {
+        const diff = Math.abs(point.hour - h);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          closest = point;
+        }
+      }
+      return closest.chargeWh;
+    }
+
+    function refreshBatteryForHour(hour) {
+      state.batteryChargeWh = chargeAtHour(hour);
+      const { phoneW, farolaW } = state.dayCycleLoadW || { phoneW: 0, farolaW: 0 };
+      const night = isNightHour(hour);
+      const loadW = phoneW + (night ? farolaW : 0);
+      const genW = interpolateSeriesPower(((hour % 24) + 24) % 24) / 1000;
+      const netW = genW - loadW;
+
+      state.dischargeFlow = loadW > 0.00001 && state.batteryChargeWh > 0.00001;
+      state.dischargeFlowSpeed = clamp(2.6 - loadW * 8, 0.7, 2.6);
+
+      updateLoadsGlow(hour);
+      updateBatteryVisual(netW);
+      updatePhoneChargeLabels();
+      renderBatteryStatus();
+    }
+
+    function renderBatteryStatus() {
+      const battery = currentBattery();
+      const { bulbCount, phoneCount } = loadCounts();
+      const capacity = state.batteryCapacityWh;
+      const currentHour = ((state.currentHour % 24) + 24) % 24;
+      const pctNow = capacity > 0 ? (chargeAtHour(currentHour) / capacity) * 100 : 0;
+
+      const chargeAtDusk = chargeAtHour(19);
+      const pctAtDusk = capacity > 0 ? (chargeAtDusk / capacity) * 100 : 0;
+
+      const { phoneW, farolaW } = state.dayCycleLoadW || { phoneW: 0, farolaW: 0 };
+      const nightLoadW = phoneW + farolaW;
+      const NIGHT_LENGTH_H = 11;
+
+      let enduranceLine;
+      if (nightLoadW <= 0.00001) {
+        enduranceLine = "No hay farolas ni celulares conectados que consuman esa carga.";
+      } else {
+        const hoursLasted = chargeAtDusk / nightLoadW;
+        enduranceLine = hoursLasted >= NIGHT_LENGTH_H
+          ? `Con ${bulbCount} farola(s) y ${phoneCount} celular(es) conectados, la carga alcanza para toda la noche (~${NIGHT_LENGTH_H} h) y sobra energía al amanecer.`
+          : `Con ${bulbCount} farola(s) y ${phoneCount} celular(es) conectados, la carga dura aproximadamente ${fmtHoursMin(hoursLasted)} antes de agotarse (la noche dura ~${NIGHT_LENGTH_H} h).`;
+      }
+
+      els.batteryResult.innerHTML = `De la mañana a la tarde (10:00-19:00), "${battery.name}" (${battery.volts}V, ${battery.mah}mAh) llegaría a <strong>${pctAtDusk.toFixed(1)}%</strong> de carga.<br>${enduranceLine}<br>Ahora mismo (${fmt2(currentHour)}h): <strong>${pctNow.toFixed(1)}%</strong>.`;
+      els.batteryResult.className = pctAtDusk >= 50 ? "volt-result ok" : "volt-result no";
+    }
+
+    async function loadRoadScaling() {
+      try {
+        const res = await fetch(`${BACKEND}/escalar-carretera`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ancho: 10.0, longitud: 1000.0, p_ave_mW: 29.0, horas: 8.0 }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        state.roadDailyKwh = Number(data?.resultados?.P_8h_kWh || 23.2);
+      } catch (error) {
+        const A_placa = 0.5 * 0.2;
+        const Psm = 29.0 / 1000 / A_placa;
+        const Pps = Psm * (10.0 * 1000.0);
+        state.roadDailyKwh = (Pps * 8 * 3600) / 3600000;
+      }
+      updateStreetlightCalc();
+    }
+
+    function updateStreetlightCalc() {
+      els.lampWattValue.textContent = state.lampWatt;
+      els.lampHoursValue.textContent = state.lampHours;
+      const perLampKwh = (state.lampWatt * state.lampHours) / 1000;
+      const count = perLampKwh > 0 ? Math.floor(state.roadDailyKwh / perLampKwh) : 0;
+      els.streetlightResult.innerHTML = `Con <strong>${fmt2(state.roadDailyKwh)} kWh/día</strong> generados en 1 km de carretera (10 m de ancho, según el paper), este sistema podría alimentar aproximadamente <strong>${count} farolas</strong> LED de ${state.lampWatt} W durante ${state.lampHours} h cada noche.`;
+    }
+
+    function updateBatteryVisual(netW) {
+      const pct = state.batteryCapacityWh > 0 ? clamp(state.batteryChargeWh / state.batteryCapacityWh, 0, 1) : 0;
+      scene.batteries.forEach((inst) => {
+        inst.fillEl.style.opacity = (0.15 + pct * 0.85).toFixed(2);
+        inst.fillEl.classList.toggle("charging", netW > 0.0001);
+      });
+    }
+
+    function svgEl(tag, attrs) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+      return el;
+    }
+
+    function makeWireAndElectrons() {
+      const wire = svgEl("path", { class: "wire-line", d: "" });
+      const electronGroupEl = svgEl("g", {});
+      const electronDots = [0, 1, 2].map(() => {
+        const dot = svgEl("circle", { class: "electron", r: "4" });
+        electronGroupEl.appendChild(dot);
+        return dot;
+      });
+      return { wire, electronGroupEl, electronDots };
+    }
+
+    function makeBulbGroup(nativeX, nativeY, removable) {
+      const group = svgEl("g", { class: "draggable-comp" });
+      const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+      title.textContent = removable
+        ? "Farola adicional (carga ilustrativa, ~20 mW): se alimenta de la batería. Arrastra para moverla; doble clic para quitarla."
+        : "Farola de alumbrado público (carga ilustrativa, ~20 mW): se alimenta de la batería, no directo del TEG. Arrástrala para moverla.";
+      const glassCy = nativeY - 10;
+      const glow = svgEl("circle", { class: "bulb-glow", cx: nativeX, cy: glassCy, r: "32", fill: "url(#bulbGrad)", opacity: "0.1" });
+      const glass = svgEl("circle", { class: "bulb-glass", cx: nativeX, cy: glassCy, r: "14" });
+      const neck = svgEl("path", {
+        class: "bulb-glass",
+        d: `M${nativeX - 9},${nativeY + 2} L${nativeX - 5},${nativeY + 10} L${nativeX + 5},${nativeY + 10} L${nativeX + 9},${nativeY + 2} Z`,
+      });
+      const base = svgEl("rect", { class: "bulb-base", x: nativeX - 5, y: nativeY + 10, width: "10", height: "9", rx: "1" });
+      const thread1 = svgEl("line", { class: "bulb-thread", x1: nativeX - 5, y1: nativeY + 13, x2: nativeX + 5, y2: nativeY + 13 });
+      const thread2 = svgEl("line", { class: "bulb-thread", x1: nativeX - 5, y1: nativeY + 16, x2: nativeX + 5, y2: nativeY + 16 });
+      const pole = svgEl("rect", { class: "bulb-base", x: nativeX - 1.5, y: nativeY + 19, width: "3", height: "15" });
+      const foot = svgEl("rect", { class: "bulb-base", x: nativeX - 8, y: nativeY + 34, width: "16", height: "3", rx: "1" });
+      const filament = svgEl("path", {
+        class: "bulb-filament",
+        d: `M${nativeX - 6},${glassCy - 6} L${nativeX - 3},${glassCy + 2} L${nativeX},${glassCy - 6} L${nativeX + 3},${glassCy + 2} L${nativeX + 6},${glassCy - 6}`,
+        stroke: "#8a7a3a",
+      });
+      const label = svgEl("text", { x: nativeX, y: nativeY + 50, class: "scene-label tiny", "text-anchor": "middle" });
+      label.textContent = "FAROLA · ~20 mW";
+      group.append(title, glow, glass, neck, base, thread1, thread2, pole, foot, filament, label);
+      return { group, glow, filament };
+    }
+
+    function makeBatteryGroup(nativeX, nativeY) {
+      const group = svgEl("g", { class: "draggable-comp" });
+      const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+      title.textContent = "Batería principal: acumula la energía generada por el TEG a través del regulador. Las farolas y celulares se cargan desde acá. Arrástrala para moverla; elegí el tipo en el panel derecho.";
+      const nub = svgEl("rect", { class: "battery-nub", x: nativeX - 8, y: nativeY - 45, width: "16", height: "10", rx: "2" });
+      const body = svgEl("rect", { class: "battery-body", x: nativeX - 23, y: nativeY - 37, width: "46", height: "74", rx: "4" });
+      const fill = svgEl("rect", { class: "battery-fill", x: nativeX - 19, y: nativeY + 3, width: "34", height: "30", rx: "2" });
+      const label1 = svgEl("text", { x: nativeX, y: nativeY + 49, class: "scene-label tiny", "text-anchor": "middle" });
+      label1.textContent = "BATERÍA";
+      const label2 = svgEl("text", { x: nativeX, y: nativeY + 61, class: "scene-label tiny", "text-anchor": "middle" });
+      label2.textContent = "3.7V · 3000mAh";
+      group.append(title, nub, body, fill, label1, label2);
+      return { group, fill, label2 };
+    }
+
+    function makePhoneGroup(nativeX, nativeY) {
+      const group = svgEl("g", { class: "draggable-comp" });
+      const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+      title.textContent = "Celular adicional (carga ilustrativa, ~150 mW): se carga desde la batería principal. Arrastra para moverlo; doble clic para quitarlo.";
+      const body = svgEl("rect", { class: "phone-body", x: nativeX - 17, y: nativeY - 29, width: "34", height: "58", rx: "7" });
+      const screen = svgEl("rect", { class: "phone-screen", x: nativeX - 14, y: nativeY - 24, width: "28", height: "44", rx: "3" });
+      const speaker = svgEl("rect", { class: "phone-speaker", x: nativeX - 6, y: nativeY - 26, width: "12", height: "2", rx: "1" });
+      const homeDot = svgEl("circle", { class: "phone-home", cx: nativeX, cy: nativeY + 24, r: "2" });
+      const fill = svgEl("rect", { class: "battery-fill", x: nativeX - 12, y: nativeY + 4, width: "24", height: "14", rx: "2" });
+      const label1 = svgEl("text", { x: nativeX, y: nativeY + 42, class: "scene-label tiny", "text-anchor": "middle" });
+      label1.textContent = "CELULAR · ~150 mW";
+      const label2 = svgEl("text", { x: nativeX, y: nativeY + 53, class: "scene-label tiny", "text-anchor": "middle" });
+      label2.textContent = "3.7V · 3000mAh";
+      const chargeTimeEl = svgEl("text", { x: nativeX, y: nativeY + 64, class: "scene-label tiny", "text-anchor": "middle", fill: "#69f0ae" });
+      chargeTimeEl.textContent = "calculando...";
+      group.append(title, body, screen, speaker, homeDot, fill, label1, label2, chargeTimeEl);
+      return { group, fill, label2, chargeTimeEl };
+    }
+
+    function attachDrag(instance) {
+      instance.groupEl.addEventListener("pointerdown", onDragPointerDown(instance, instance.groupEl));
+      if (instance.removable) {
+        instance.groupEl.addEventListener("dblclick", () => removeInstance(instance));
+      }
+    }
+
+    function updateAddButtonsState() {
+      els.addBulbBtn.disabled = scene.bulbs.length - 1 >= MAX_EXTRA_COMPS;
+      els.addBatteryBtn.disabled = scene.batteries.length - 1 >= MAX_EXTRA_COMPS;
+    }
+
+    function removeInstance(instance) {
+      const list = instance.kind === "bulb" ? scene.bulbs : scene.batteries;
+      const idx = list.indexOf(instance);
+      if (idx === -1) return;
+      list.splice(idx, 1);
+      instance.groupEl.remove();
+      instance.wireEl.remove();
+      instance.electronGroupEl.remove();
+      updateAddButtonsState();
+      recomputeDayCycle();
+    }
+
+    function wrapExistingInstances() {
+      const bulbInstance = {
+        id: "bulbGroup",
+        kind: "bulb",
+        flowGroup: "discharge",
+        nativeX: 150,
+        nativeY: 180,
+        dx: 0,
+        dy: 0,
+        groupEl: els.bulbGroup,
+        wireEl: els.wireBulb,
+        electronGroupEl: els.bulbElectronGroup,
+        electronDots: Array.from(els.bulbElectronGroup.querySelectorAll(".electron")),
+        glowEl: els.bulbGlowOuter,
+        filamentEl: els.bulbFilament,
+        removable: false,
+      };
+      scene.bulbs.push(bulbInstance);
+      attachDrag(bulbInstance);
+
+      const batteryInstance = {
+        id: "batteryGroup",
+        kind: "battery",
+        flowGroup: "charge",
+        nativeX: 530,
+        nativeY: 205,
+        dx: 0,
+        dy: 0,
+        groupEl: els.batteryGroup,
+        wireEl: els.wireBattery,
+        electronGroupEl: els.batteryElectronGroup,
+        electronDots: Array.from(els.batteryElectronGroup.querySelectorAll(".electron")),
+        fillEl: els.batteryFill,
+        labelEl: els.batteryLabelSvg,
+        removable: false,
+      };
+      scene.batteries.push(batteryInstance);
+      attachDrag(batteryInstance);
+    }
+
+    function addBulb() {
+      if (scene.bulbs.length - 1 >= MAX_EXTRA_COMPS) return;
+      const extraIndex = scene.bulbs.length - 1;
+      const nativeX = 150;
+      const nativeY = 180;
+      const dx = (extraIndex % 2 === 0 ? 1 : -1) * 45;
+      const dy = 75 + Math.floor(extraIndex / 2) * 55;
+      const { wire, electronGroupEl, electronDots } = makeWireAndElectrons();
+      const { group, glow: glowEl, filament } = makeBulbGroup(nativeX, nativeY, true);
+      group.setAttribute("transform", `translate(${dx.toFixed(1)},${dy.toFixed(1)})`);
+      els.sceneSvg.append(wire, electronGroupEl, group);
+      const instance = {
+        id: `bulb-${nextCompId++}`,
+        kind: "bulb",
+        flowGroup: "discharge",
+        nativeX,
+        nativeY,
+        dx,
+        dy,
+        groupEl: group,
+        wireEl: wire,
+        electronGroupEl,
+        electronDots,
+        glowEl,
+        filamentEl: filament,
+        removable: true,
+      };
+      scene.bulbs.push(instance);
+      attachDrag(instance);
+      redrawWires();
+      updateAddButtonsState();
+      recomputeDayCycle();
+    }
+
+    function addBattery() {
+      if (scene.batteries.length - 1 >= MAX_EXTRA_COMPS) return;
+      const extraIndex = scene.batteries.length - 1;
+      const nativeX = 530;
+      const nativeY = 205;
+      const dx = (extraIndex % 2 === 0 ? -1 : 1) * 60;
+      const dy = 65 + Math.floor(extraIndex / 2) * 60;
+      const { wire, electronGroupEl, electronDots } = makeWireAndElectrons();
+      const { group, fill, label2, chargeTimeEl } = makePhoneGroup(nativeX, nativeY);
+      group.setAttribute("transform", `translate(${dx.toFixed(1)},${dy.toFixed(1)})`);
+      els.sceneSvg.append(wire, electronGroupEl, group);
+      const instance = {
+        id: `battery-${nextCompId++}`,
+        kind: "battery",
+        flowGroup: "discharge",
+        nativeX,
+        nativeY,
+        dx,
+        dy,
+        groupEl: group,
+        wireEl: wire,
+        electronGroupEl,
+        electronDots,
+        fillEl: fill,
+        labelEl: label2,
+        chargeTimeEl,
+        removable: true,
+      };
+      scene.batteries.push(instance);
+      attachDrag(instance);
+      redrawWires();
+      updateAddButtonsState();
+      recomputeDayCycle();
     }
 
     function populateDeviceSelect() {
@@ -1329,7 +2319,9 @@
         Number(resultados.P_electrica_mW || 0)
       );
       state.singleVoltage = Number(resultados.V_teg_V || 0);
+      state.lastPowerMw = Number(resultados.P_electrica_mW || 0);
       updateVoltEditor();
+      refreshBatteryForHour(hour);
       pulsePower();
       drawChart();
     }
@@ -1471,14 +2463,30 @@
       els.formulaModalOverlay.classList.add("hidden");
     }
 
+    function openBuildModal() {
+      els.buildModalOverlay.classList.remove("hidden");
+    }
+
+    function closeBuildModal() {
+      els.buildModalOverlay.classList.add("hidden");
+    }
+
     els.timeSlider.addEventListener("input", onSliderChange);
     els.formulasBtn.addEventListener("click", openFormulasModal);
     els.formulaModalClose.addEventListener("click", closeFormulasModal);
     els.formulaModalOverlay.addEventListener("click", (event) => {
       if (event.target === els.formulaModalOverlay) closeFormulasModal();
     });
+    els.buildBtn.addEventListener("click", openBuildModal);
+    els.buildModalClose.addEventListener("click", closeBuildModal);
+    els.buildModalOverlay.addEventListener("click", (event) => {
+      if (event.target === els.buildModalOverlay) closeBuildModal();
+    });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeFormulasModal();
+      if (event.key === "Escape") {
+        closeFormulasModal();
+        closeBuildModal();
+      }
     });
     els.tegMinus.addEventListener("click", () => {
       state.tegSeries = clamp(state.tegSeries - 1, 1, 20);
@@ -1489,6 +2497,28 @@
       updateVoltEditor();
     });
     els.deviceSelect.addEventListener("change", updateVoltEditor);
+    els.batterySelect.addEventListener("change", recomputeDayCycle);
+    els.addBulbBtn.addEventListener("click", addBulb);
+    els.addBatteryBtn.addEventListener("click", addBattery);
+    els.lampWattMinus.addEventListener("click", () => {
+      state.lampWatt = clamp(state.lampWatt - 10, 10, 400);
+      updateStreetlightCalc();
+    });
+    els.lampWattPlus.addEventListener("click", () => {
+      state.lampWatt = clamp(state.lampWatt + 10, 10, 400);
+      updateStreetlightCalc();
+    });
+    els.lampHoursMinus.addEventListener("click", () => {
+      state.lampHours = clamp(state.lampHours - 1, 1, 14);
+      updateStreetlightCalc();
+    });
+    els.lampHoursPlus.addEventListener("click", () => {
+      state.lampHours = clamp(state.lampHours + 1, 1, 14);
+      updateStreetlightCalc();
+    });
+    window.addEventListener("pointermove", onDragPointerMove);
+    window.addEventListener("pointerup", onDragPointerUp);
+    window.addEventListener("pointercancel", onDragPointerUp);
     window.addEventListener("resize", () => {
       resizeCanvases();
       drawChart();
@@ -1498,10 +2528,17 @@
       resizeCanvases();
       schedulePulse();
       populateDeviceSelect();
+      populateBatterySelect();
+      wrapExistingInstances();
+      updateAddButtonsState();
+      redrawWires();
+      requestAnimationFrame(animateElectrons);
+      loadRoadScaling();
       await loadDaySeries();
       state.currentHour = 12;
       els.timeSlider.value = "12.0";
       updateSky(12);
+      recomputeDayCycle();
       await fetchFromBackend(12);
       drawChart();
     }
