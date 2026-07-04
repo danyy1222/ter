@@ -1,0 +1,201 @@
+ASPHALT-TEG SIMULATOR — ESTADO DEL PROYECTO Y CONTEXTO DE SESIÓN
+=================================================================
+Generado para poder continuar este proyecto en otro chat / otra PC sin perder contexto.
+Última actualización: 2026-07-04.
+
+
+0) INSTRUCCIÓN PERMANENTE DEL USUARIO
+--------------------------------------
+El usuario pidió responder SIEMPRE en español (instrucción dada al inicio de este
+proyecto: "desde ahora hazlo todo en español hasta que yo te diga que uses el
+inngles"). Sigue vigente. No cambiar a inglés salvo que el usuario lo pida.
+
+
+1) QUÉ ES EL PROYECTO
+----------------------
+Simulador de escritorio/web de un generador termoeléctrico (TEG) embebido en asfalto,
+basado en las ecuaciones y datos de campo del paper Tahami et al. 2019. Tres partes:
+
+- backend/        FastAPI que expone los cálculos de física/economía como API REST.
+- ui/index.html   Un único HTML/CSS/JS autocontenido (sin build, sin framework) con
+                   la simulación visual e interactiva y los paneles de datos.
+- main.py         Lanzador pywebview que abre ui/index.html en ventana nativa.
+
+No hay package.json, bundler ni test suite. Todo es Python + un solo HTML estático.
+El archivo CLAUDE.md (raíz del repo) documenta la arquitectura completa en detalle
+técnico (en inglés) y debe seguir siendo la referencia principal para cualquier chat
+nuevo — LÉELO PRIMERO.
+
+
+2) ESTADO DE GIT (a la fecha de este archivo)
+-----------------------------------------------
+- Repo: https://github.com/danyy1222/ter.git (remoto "origin")
+- Rama: main, sincronizada con origin/main (todo pusheado, working tree limpio)
+- Último commit relevante: "casa" (11dd001) — contiene TODO el trabajo de la sesión
+  descrita en la sección 4 (1091 líneas agregadas en ui/index.html).
+- No hay cambios pendientes de commitear al momento de generar este archivo.
+
+Para continuar en otra PC: `git clone https://github.com/danyy1222/ter.git` y abrir
+Claude Code ahí. El CLAUDE.md viaja con el repo y da contexto automático. La MEMORIA
+de Claude (aprendizajes sobre el usuario/proyecto) vive en la PC actual, en
+`~/.claude/projects/...` y NO viaja con git — hay que reconstruirla o copiarla a mano
+si se quiere conservar.
+
+
+3) CÓMO CORRER EL PROYECTO (resumen — ver CLAUDE.md para el detalle completo)
+--------------------------------------------------------------------------------
+Backend:
+    cd backend
+    py -m pip install -r requirements.txt
+    py main.py                      (levanta uvicorn en http://localhost:8000)
+
+Frontend: abrir ui/index.html directo en el navegador (el backend es OPCIONAL, hay
+fallback JS local `calcularLocal()` si no está corriendo), o lanzar la ventana nativa:
+    py -m pip install pywebview
+    py main.py                      (desde la raíz del repo)
+
+
+4) HISTORIAL DETALLADO DE ESTA SESIÓN (qué se construyó y por qué)
+---------------------------------------------------------------------
+Todo lo siguiente está en ui/index.html salvo que se indique lo contrario. Orden
+cronológico real de la sesión:
+
+4.1 Corroboración contra el paper (PDF "PROYECTO FLUIDOS Y TERMOD.pdf")
+   Se verificó ecuación por ecuación y constante por constante que el proyecto es
+   fiel al paper. Coincide todo: placa de cobre 50cm(horiz)+18cm(vert) x 20cm x
+   0,15cm, embebida a 3cm; TEG 2 módulos de 4x4x0,35cm; disipador aluminio
+   18x10x5cm con MPCM a ~18°C; datos de campo T_asfalto 55-62°C, T_disipador
+   18.3-18.8°C, ΔT_max 34°C, P_max 34mW, P_ave 29mW; escalado a 1km x 10m de
+   carretera da 2900W promedio y 23,2 kWh/día (verificado exacto con
+   build_road_scaling en backend/teg_engine.py).
+
+   Único hallazgo real (no un bug, una limitación honesta del modelo): el LCOE del
+   prototipo (~$119/kWh) y el LCOE de carretera citado por el paper ($0.9/kWh) NO
+   son comparables entre sí (distinta escala). Se corrigió build_viability() en
+   backend/teg_engine.py para mostrar ambos valores por separado con una
+   "interpretacion" explicando por qué, en vez de forzar que coincidan.
+
+4.2 formulas_explicacion.txt (raíz del repo)
+   Archivo en dos partes: PARTE 1 explica el efecto Seebeck y todo el flujo de
+   electricidad "como para un niño" (analogías: tobogán, pista de carreras,
+   baches=resistencia, termo con hielo=disipador). PARTE 2 es la versión técnica
+   con las 6 fórmulas (V, I, P, Q, q de Fourier, η) y las constantes reales.
+
+4.3 Rediseño visual completo de la escena de simulación (varias iteraciones)
+   Se reemplazó por completo la vieja escena de sol/cielo nocturno por un diagrama
+   SVG técnico (viewBox 640x300, id="sceneSvg") que muestra: asfalto, placa de
+   cobre en L (gradiente de color dinámico frío/caliente), chip TEG, disipador con
+   aletas, un regulador de voltaje, cables, y componentes de carga (farola/foco y
+   batería/celular). Todo con animación de "electrones" (puntitos) fluyendo por
+   los cables, velocidad proporcional a la corriente.
+
+   - Cotas técnicas (dimension lines con marcas, estilo plano) directo sobre el
+     cobre mostrando 50cm y 18cm, más 6cm de espesor de losa sobre el asfalto.
+   - Tooltips (SVG <title>, hover) con TODOS los datos del PDF en cada pieza.
+   - Modal "Ver construcción" (botón junto a "Ver fórmulas") con TODAS las medidas
+     del PDF organizadas por sección: pista/escala real, colector, TEG,
+     refrigeración, aislamiento (3 capas: aerogel/poliestireno/PVC con sus
+     medidas exactas), y sensores con lectura EN VIVO de T_h/T_c actuales.
+   - Sol: es la imagen real ui/assets/sol.png (ya existía en el repo), no un
+     degradado CSS. Se mueve en arco según la hora (6h-19h visible).
+   - Emojis: se sacaron TODOS los decorativos de botones/títulos/etiquetas (se
+     dejó el "✕" de cerrar modales por ser funcional, no decorativo).
+
+4.4 Sistema "Tinkercad": componentes arrastrables y agregables
+   - Botones "+ Farola" y "+ Celular" (arriba a la izquierda de la escena) agregan
+     copias arrastrables de un foco/celular al lienzo, con cable que se re-dibuja
+     solo. Doble clic para quitar los que se agregaron (el foco y la batería
+     originales no se pueden borrar). Tope: 4 extra de cada tipo (MAX_EXTRA_COMPS).
+   - El foco tiene forma real de farola de alumbrado público: bombilla con
+     filamento, rosca, poste y base (no un círculo genérico).
+   - El "celular" tiene forma real de teléfono (cuerpo, pantalla, parlante,
+     botón), con una barra de carga verde adentro de la pantalla — DISTINTO del
+     ícono de la batería principal (que sigue pareciendo una pila).
+   - Editor de voltaje (panel lateral): stepper de "TEG en serie" + selector de
+     dispositivo (LED, Arduino, cargar celular, etc.), calcula si el voltaje
+     alcanza y cuántos TEG más harían falta.
+
+4.5 Rediseño del circuito: batería central + regulador (cambio de arquitectura)
+   ANTES: el foco y la batería se alimentaban cada uno directo del TEG (en
+   paralelo). AHORA: TEG → Regulador de voltaje (chip "REG" nuevo en la escena) →
+   Batería PRINCIPAL (acumula) → de ahí salen los cables hacia CUALQUIER
+   foco/farola o celular agregado (scene.batteries[0] es siempre la batería
+   principal; el resto son "celulares"/cargas extra). Esto significa que las
+   farolas quedan encendidas de noche aunque no haya sol, mientras haya carga
+   guardada — que es el punto real de tener una batería.
+
+   Constantes clave (en el <script> de ui/index.html):
+     BULB_DRAIN_W = 0.02      (consumo ilustrativo de 1 farola, ~20mW)
+     PHONE_DRAIN_W = 0.15     (consumo ilustrativo de 1 celular cargando, ~150mW)
+     PHONE_CAPACITY_WH = 3.7*3000/1000 = 11.1   (batería típica de celular asumida)
+     MAX_EXTRA_COMPS = 4
+     DAY_CYCLE_STEP_H = 0.25  (paso de la simulación de ciclo diario, en horas)
+
+4.6 Simulador de carga de batería — REDISEÑADO a ciclo día/noche completo
+   Versión final (la que pidió el usuario explícitamente: "ver que se dé la
+   mañana hasta la tarde cuánto se cargó y cuánto tiempo dura"). YA NO es un
+   contador en tiempo real (esa versión anterior con ACCEL_HOURS_PER_SEC y
+   requestAnimationFrame fue ELIMINADA por completo — no debe reintroducirse).
+
+   Ahora es una simulación DETERMINÍSTICA de 24 horas:
+   - Usa la curva real de potencia del día (state.daySeries, de
+     /simular-dia-completo o fallback local, horas 10:00-19:00) vía
+     interpolateSeriesPower(hour).
+   - Reglas día/noche: isNightHour(hour) = hour < 6 || hour >= 19 (11 horas de
+     noche). Las farolas SOLO consumen (y solo se ven encendidas/glow) de noche,
+     como una farola real con fotocélula. Los celulares consumen siempre que
+     estén conectados (se puede cargar un celular a cualquier hora).
+   - recomputeDayCycle() corre la simulación completa 8 veces seguidas (8 ciclos
+     de 24h, cada uno arrancando donde terminó el anterior) para que converja a
+     un estado estable — con solo 2 ciclos quedaba un salto discontinuo entre el
+     final y el inicio del día (bug real que se encontró y corrigió durante esta
+     sesión, verificado con datos exportados por Playwright).
+   - chargeAtHour(hour) busca en la serie precalculada state.dayCycleSeries el
+     punto más cercano a esa hora — instantáneo, no hay que esperar en tiempo
+     real.
+   - Se recalcula (recomputeDayCycle) cada vez que: cambia el tipo de batería
+     seleccionado, se agrega o quita una farola/celular. Se refresca la vista
+     (refreshBatteryForHour) cada vez que cambia la hora del slider.
+   - Texto mostrado: "De la mañana a la tarde (10:00-19:00) llegaría a X% de
+     carga" + "con N farolas y M celulares conectados, la carga
+     alcanza/no-alcanza para toda la noche (~11h), dura Y h Z min" + "Ahora mismo
+     (hora actual): W%".
+   - Bug de redondeo corregido de paso: fmtHoursMin() ya no puede mostrar
+     "8 h 60 min" (se normaliza a "9 h 0 min").
+
+4.7 Panel "Alumbrado público nocturno" (nueva tarjeta en el sidebar)
+   Usa la cifra de escala real de carretera (2900W promedio, 23,2 kWh/día para
+   1km x 10m de ancho — intenta traerla en vivo de POST /escalar-carretera y si
+   no hay backend cae a un cálculo local idéntico). Con dos steppers interactivos
+   (W por farola, horas de uso/noche) calcula cuántas farolas LED reales podría
+   alimentar esa energía. Con los valores por defecto (100W, 10h) da 23 farolas —
+   este es el número "presentable" que reemplazó la narrativa poco convincente de
+   "74 horas para cargar un celular" que no gustó para la presentación del
+   proyecto.
+
+
+5) FUNCIONES/CONCEPTOS CLAVE PARA NO ROMPER SI SE SIGUE EDITANDO
+---------------------------------------------------------------------
+- scene.bulbs[] / scene.batteries[] — arrays de instancias, NO objetos sueltos.
+  scene.batteries[0] SIEMPRE es la batería principal (no removible, flowGroup:
+  "charge"). Todo lo demás en ambos arrays es removable:true, flowGroup:
+  "discharge".
+- redrawWires() conecta: batería principal <- REGULATOR_OUT_ANCHOR (fijo, junto
+  al TEG); todos los focos/celulares <- posición ACTUAL de la batería principal
+  (por eso si arrastrás la batería, todos los cables de las cargas la siguen).
+- animateElectrons() anima según inst.flowGroup ("charge" usa
+  state.chargingFlow/chargeFlowSpeed, viene de I_A del TEG; "discharge" usa
+  state.dischargeFlow/dischargeFlowSpeed, viene del consumo de las cargas).
+- updateTegScene(T_h,T_c,I_A,P_mW) — sigue ligado a la hora actual (datos reales
+  del backend/cálculo local), NO tocar su lógica de color del cobre/sensores.
+- El backend (teg_engine.py) NO se tocó en esta sesión salvo el fix de
+  build_viability() (ya documentado arriba, hecho ANTES de esta sesión de
+  rediseño visual). Todas las fórmulas físicas (V, I, P, Q, Fourier, η) siguen
+  intactas y verificadas contra el paper.
+
+
+6) POSIBLES PRÓXIMOS PASOS (no confirmados con el usuario, solo ideas abiertas)
+-----------------------------------------------------------------------------
+- Nada pendiente explícitamente pedido por el usuario al momento de generar este
+  archivo. Si una conversación nueva retoma el proyecto, preguntar directamente
+  qué quiere seguir mejorando en vez de asumir.
