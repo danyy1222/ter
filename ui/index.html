@@ -51,7 +51,7 @@
       height: 100%;
       min-height: 0;
       display: grid;
-      grid-template-columns: 52px 1fr minmax(260px, 300px);
+      grid-template-columns: 52px minmax(0, 1fr) minmax(260px, 300px);
       gap: 14px;
       padding: 18px;
       align-items: stretch;
@@ -80,8 +80,17 @@
       background: #161b22;
       border: 1px solid var(--border-2);
       border-radius: 6px;
-      overflow: hidden;
+      overflow: visible;
       min-height: 100%;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .t-track-clip {
+      position: absolute;
+      inset: 0;
+      border-radius: 6px;
+      overflow: hidden;
     }
 
     .track-fill {
@@ -102,15 +111,23 @@
       position: absolute;
       left: 50%;
       bottom: 0%;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
+      width: 30px;
+      height: 30px;
       transform: translateX(-50%);
-      background: var(--accent);
-      box-shadow: 0 0 8px #ffb30099;
-      border: 2px solid rgba(255,255,255,0.35);
-      transition: bottom 0.4s ease;
+      background-image: url("assets/sol.png");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: drop-shadow(0 0 8px rgba(255, 179, 0, 0.7));
+      transition: bottom 0.4s ease, filter 0.2s ease;
       z-index: 2;
+      cursor: grab;
+    }
+
+    .marker.dragging {
+      cursor: grabbing;
+      filter: drop-shadow(0 0 14px rgba(255, 179, 0, 0.95));
+      transition: none;
     }
 
     .tick {
@@ -139,7 +156,7 @@
 
     .center-col {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       grid-template-rows: auto minmax(0, 1fr) auto;
       gap: 10px;
       min-width: 0;
@@ -587,23 +604,53 @@
 
     .formula-list {
       display: flex;
-      flex-direction: column;
-      gap: 11px;
-      padding: 10px 18px 18px;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 2px 2px 8px;
     }
 
     .formula-item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 16px;
-      align-items: center;
-      padding-bottom: 11px;
-      border-bottom: 1px solid var(--border);
+      flex: 0 0 auto;
+      width: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-width: 0;
+      background: var(--panel);
     }
 
-    .formula-item:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
+    .formula-item .formula-val {
+      align-self: flex-end;
+    }
+
+    .formula-item.pulse {
+      animation: formulaPulse 0.7s ease;
+    }
+
+    @keyframes formulaPulse {
+      0% { background: rgba(255, 179, 0, 0); box-shadow: inset 3px 0 0 rgba(255, 179, 0, 0); }
+      25% { background: rgba(255, 179, 0, 0.14); box-shadow: inset 3px 0 0 rgba(255, 179, 0, 0.9); }
+      100% { background: rgba(255, 179, 0, 0); box-shadow: inset 3px 0 0 rgba(255, 179, 0, 0); }
+    }
+
+    .formula-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+      min-width: 0;
+    }
+
+    .formula-strip-head {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
     .formula-exp {
@@ -726,12 +773,32 @@
     }
 
     .right {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 12px;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .data-box {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      min-width: 0;
       min-height: 0;
       overflow-y: auto;
+      background: rgba(255, 255, 255, 0.015);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .data-box-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 2px;
     }
 
     .stat-card {
@@ -936,8 +1003,67 @@
       line-height: 1.35;
     }
 
+    .weather-options {
+      display: flex;
+      gap: 6px;
+    }
+
+    .weather-btn {
+      flex: 1;
+      padding: 7px 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border-2);
+      background: #1c2128;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+    }
+
+    .weather-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .weather-btn.active {
+      border-color: var(--accent);
+      background: rgba(255, 179, 0, 0.12);
+      color: var(--accent);
+    }
+
+    .play-day-btn {
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 179, 0, 0.4);
+      background: rgba(255, 179, 0, 0.12);
+      color: var(--accent);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+    }
+
+    .play-day-btn:hover {
+      background: rgba(255, 179, 0, 0.2);
+    }
+
+    .play-day-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     @media (max-width: 860px) {
       html, body { overflow: auto; }
+      .root {
+        height: auto;
+        min-height: 100%;
+        grid-template-rows: auto auto;
+      }
       .app {
         height: auto;
         min-height: 100%;
@@ -945,6 +1071,7 @@
       }
       .center-col {
         height: auto;
+        grid-template-rows: auto auto auto;
       }
       .sky {
         min-height: 260px;
@@ -978,8 +1105,10 @@
       <aside class="time-col">
         <div class="current-hour" id="currentHourText">12.0h</div>
         <div class="t-track" id="track">
-          <div class="track-fill" id="trackFill"></div>
-          <div class="marker" id="marker"></div>
+          <div class="t-track-clip">
+            <div class="track-fill" id="trackFill"></div>
+          </div>
+          <div class="marker" id="marker" title="Arrastra para cambiar la hora"></div>
           <div class="tick tick-6">6h</div>
           <div class="tick tick-12">12h</div>
           <div class="tick tick-18">18h</div>
@@ -991,7 +1120,6 @@
           <span>SIMULADOR ASPHALT-TEG</span>
           <div class="eyebrow-actions">
             <button class="formulas-btn" id="buildBtn" type="button">Ver construcción</button>
-            <button class="formulas-btn" id="formulasBtn" type="button">Ver fórmulas</button>
           </div>
         </div>
 
@@ -1121,97 +1249,120 @@
             </div>
           </div>
         </div>
+
+        <div class="formula-strip">
+          <div class="formula-strip-head">Fórmulas aplicadas en tiempo real</div>
+          <div class="formula-list" id="formulaList"></div>
+        </div>
       </section>
 
       <aside class="right">
-        <div class="stat-card">
-          <div class="stat-label">ELECTRICIDAD OBTENIDA</div>
-          <div class="stat-value">
-            <div class="number" id="powerBig">0.00</div>
-            <div class="unit">mW</div>
-          </div>
-          <div class="progress"></div>
-          <div class="info-row">
-            <div class="info-card">
-              <div class="info-label">Horas de sol</div>
-              <div class="info-value" id="sunHours">0.00</div>
+        <div class="data-box" id="liveBox">
+          <div class="data-box-title">Estado en vivo</div>
+          <div class="stat-card">
+            <div class="stat-label">ELECTRICIDAD OBTENIDA</div>
+            <div class="stat-value">
+              <div class="number" id="powerBig">0.00</div>
+              <div class="unit">mW</div>
             </div>
-            <div class="info-card">
-              <div class="info-label">Fase</div>
-              <div class="info-value" id="phaseText">Noche</div>
+            <div class="progress"></div>
+            <div class="info-row">
+              <div class="info-card">
+                <div class="info-label">Horas de sol</div>
+                <div class="info-value" id="sunHours">0.00</div>
+              </div>
+              <div class="info-card">
+                <div class="info-label">Fase</div>
+                <div class="info-value" id="phaseText">Noche</div>
+              </div>
+              <div class="info-card">
+                <div class="info-label">Eficiencia η</div>
+                <div class="info-value" id="efficiencyText">0.00%</div>
+              </div>
             </div>
-            <div class="info-card">
-              <div class="info-label">Eficiencia η</div>
-              <div class="info-value" id="efficiencyText">0.00%</div>
+          </div>
+
+          <div class="mini-grid">
+            <div class="mini-card">
+              <span class="mini-key">Voltaje TEG</span>
+              <span class="mini-val" id="voltageMini">0.00 V</span>
+            </div>
+            <div class="mini-card">
+              <span class="mini-key">Corriente I</span>
+              <span class="mini-val" id="currentMini">0.000 A</span>
+            </div>
+            <div class="mini-card">
+              <span class="mini-key">ΔT asfalto</span>
+              <span class="mini-val" id="deltaTMini">0.00 °C</span>
+            </div>
+            <div class="mini-card">
+              <span class="mini-key">Flujo calor q</span>
+              <span class="mini-val" id="heatMini">0.00 W</span>
             </div>
           </div>
+
+          <div class="chart-box">
+            <div class="chart-title">Curva del día</div>
+            <canvas id="powerChart" width="420" height="55"></canvas>
+          </div>
+
+          <div class="slider-wrap">
+            <div class="slider-label">Hora</div>
+            <input id="timeSlider" type="range" min="0" max="24" step="0.1" value="12" />
+            <div class="slider-label" id="sliderValue">12.0h</div>
+          </div>
+
+          <div class="micro" id="microCopy">Backend listo para recibir cálculo en tiempo real.</div>
         </div>
 
-        <div class="volt-card" id="voltCard">
-          <div class="volt-title">Editor de voltaje</div>
-          <div class="volt-stepper">
-            <button class="volt-btn" id="tegMinus" type="button" aria-label="Menos TEG en serie">−</button>
-            <div class="volt-count"><span id="tegCount">2</span><small>TEG en serie</small></div>
-            <button class="volt-btn" id="tegPlus" type="button" aria-label="Mas TEG en serie">+</button>
-          </div>
-          <div class="volt-total">Voltaje total: <strong id="voltTotal">0.00 V</strong></div>
-          <select class="volt-select" id="deviceSelect"></select>
-          <div class="volt-result" id="voltResult">Elige un dispositivo para comparar.</div>
-        </div>
+        <div class="data-box" id="toolsBox">
+          <div class="data-box-title">Herramientas interactivas</div>
 
-        <div class="volt-card" id="battCard">
-          <div class="volt-title">Simulador de carga de batería</div>
-          <select class="volt-select" id="batterySelect"></select>
-          <div class="volt-result" id="batteryResult">Selecciona una batería.</div>
-        </div>
+          <div class="volt-card" id="voltCard">
+            <div class="volt-title">Editor de voltaje</div>
+            <div class="volt-stepper">
+              <button class="volt-btn" id="tegMinus" type="button" aria-label="Menos TEG en serie">−</button>
+              <div class="volt-count"><span id="tegCount">2</span><small>TEG en serie</small></div>
+              <button class="volt-btn" id="tegPlus" type="button" aria-label="Mas TEG en serie">+</button>
+            </div>
+            <div class="volt-total">Voltaje total: <strong id="voltTotal">0.00 V</strong></div>
+            <select class="volt-select" id="deviceSelect"></select>
+            <div class="volt-result" id="voltResult">Elige un dispositivo para comparar.</div>
+          </div>
 
-        <div class="volt-card" id="streetlightCard">
-          <div class="volt-title">Alumbrado público nocturno</div>
-          <div class="micro">A escala de 1 km de carretera (10 m de ancho), según el paper.</div>
-          <div class="volt-stepper">
-            <button class="volt-btn" id="lampWattMinus" type="button" aria-label="Menos watts por farola">−</button>
-            <div class="volt-count"><span id="lampWattValue">100</span><small>W por farola</small></div>
-            <button class="volt-btn" id="lampWattPlus" type="button" aria-label="Mas watts por farola">+</button>
+          <div class="volt-card" id="battCard">
+            <div class="volt-title">Simulador de carga de batería</div>
+            <select class="volt-select" id="batterySelect"></select>
+            <div class="volt-result" id="batteryResult">Selecciona una batería.</div>
           </div>
-          <div class="volt-stepper">
-            <button class="volt-btn" id="lampHoursMinus" type="button" aria-label="Menos horas por noche">−</button>
-            <div class="volt-count"><span id="lampHoursValue">10</span><small>horas de uso / noche</small></div>
-            <button class="volt-btn" id="lampHoursPlus" type="button" aria-label="Mas horas por noche">+</button>
-          </div>
-          <div class="volt-result" id="streetlightResult">Calculando...</div>
-        </div>
 
-        <div class="mini-grid">
-          <div class="mini-card">
-            <span class="mini-key">Voltaje TEG</span>
-            <span class="mini-val" id="voltageMini">0.00 V</span>
+          <div class="volt-card" id="streetlightCard">
+            <div class="volt-title">Alumbrado público nocturno</div>
+            <div class="micro">A escala de 1 km de carretera (10 m de ancho), según el paper.</div>
+            <div class="volt-stepper">
+              <button class="volt-btn" id="lampWattMinus" type="button" aria-label="Menos watts por farola">−</button>
+              <div class="volt-count"><span id="lampWattValue">100</span><small>W por farola</small></div>
+              <button class="volt-btn" id="lampWattPlus" type="button" aria-label="Mas watts por farola">+</button>
+            </div>
+            <div class="volt-stepper">
+              <button class="volt-btn" id="lampHoursMinus" type="button" aria-label="Menos horas por noche">−</button>
+              <div class="volt-count"><span id="lampHoursValue">10</span><small>horas de uso / noche</small></div>
+              <button class="volt-btn" id="lampHoursPlus" type="button" aria-label="Mas horas por noche">+</button>
+            </div>
+            <div class="volt-result" id="streetlightResult">Calculando...</div>
           </div>
-          <div class="mini-card">
-            <span class="mini-key">Corriente I</span>
-            <span class="mini-val" id="currentMini">0.000 A</span>
-          </div>
-          <div class="mini-card">
-            <span class="mini-key">ΔT asfalto</span>
-            <span class="mini-val" id="deltaTMini">0.00 °C</span>
-          </div>
-          <div class="mini-card">
-            <span class="mini-key">Flujo calor q</span>
-            <span class="mini-val" id="heatMini">0.00 W</span>
+
+          <div class="volt-card" id="weatherCard">
+            <div class="volt-title">Simulación rápida del día</div>
+            <div class="weather-options" id="weatherOptions">
+              <button class="weather-btn active" data-weather="soleado" type="button">Soleado</button>
+              <button class="weather-btn" data-weather="nublado" type="button">Nublado</button>
+              <button class="weather-btn" data-weather="lluvioso" type="button">Lluvioso</button>
+            </div>
+            <button class="play-day-btn" id="playDayBtn" type="button">Reproducir día completo</button>
+            <div class="micro">Simulación ilustrativa: el clima reduce cuánto calienta el sol el asfalto y por eso baja la energía generada (no son datos medidos, es una proyección).</div>
           </div>
         </div>
-
-        <div class="chart-box">
-          <div class="chart-title">Curva del día</div>
-          <canvas id="powerChart" width="420" height="55"></canvas>
-        </div>
-
-        <div class="slider-wrap">
-          <div class="slider-label">Hora</div>
-          <input id="timeSlider" type="range" min="0" max="24" step="0.1" value="12" />
-          <div class="slider-label" id="sliderValue">12.0h</div>
-        </div>
-
-        <div class="micro" id="microCopy">Backend listo para recibir cálculo en tiempo real.</div>
       </aside>
     </div>
   </div>
@@ -1355,18 +1506,6 @@
     </div>
   </div>
 
-  <div class="modal-overlay hidden" id="formulaModalOverlay">
-    <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="formulaModalTitle">
-      <div class="modal-titlebar">
-        <span id="formulaModalTitle">Fórmulas aplicadas</span>
-        <button class="modal-close" id="formulaModalClose" type="button" aria-label="Cerrar">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="formula-list" id="formulaList"></div>
-      </div>
-    </div>
-  </div>
-
   <script>
     const BACKEND = "http://localhost:8000";
     const tablaTemp = [
@@ -1399,6 +1538,14 @@
       roadDailyKwh: 23.2,
       lampWatt: 100,
       lampHours: 10,
+      weather: "soleado",
+      playingDay: false,
+    };
+
+    const WEATHER_PRESETS = {
+      soleado: { label: "Soleado", factor: 1.0 },
+      nublado: { label: "Nublado", factor: 0.55 },
+      lluvioso: { label: "Lluvioso", factor: 0.22 },
     };
 
     const els = {
@@ -1418,9 +1565,6 @@
       deltaTMini: document.getElementById("deltaTMini"),
       heatMini: document.getElementById("heatMini"),
       formulaList: document.getElementById("formulaList"),
-      formulasBtn: document.getElementById("formulasBtn"),
-      formulaModalOverlay: document.getElementById("formulaModalOverlay"),
-      formulaModalClose: document.getElementById("formulaModalClose"),
       buildBtn: document.getElementById("buildBtn"),
       buildModalOverlay: document.getElementById("buildModalOverlay"),
       buildModalClose: document.getElementById("buildModalClose"),
@@ -1466,6 +1610,8 @@
       lampHoursPlus: document.getElementById("lampHoursPlus"),
       lampHoursValue: document.getElementById("lampHoursValue"),
       streetlightResult: document.getElementById("streetlightResult"),
+      weatherOptions: document.getElementById("weatherOptions"),
+      playDayBtn: document.getElementById("playDayBtn"),
     };
 
     const DEVICES = [
@@ -1531,6 +1677,14 @@
       const last = tablaTemp[tablaTemp.length - 1];
       const prev = tablaTemp[tablaTemp.length - 2];
       return last.T_asf + (last.T_asf - prev.T_asf) * (hour - 16);
+    }
+
+    function effectiveTh(hour) {
+      const raw = interpolateTh(hour);
+      if (raw <= 0) return 0;
+      const T_c = 18.5;
+      const factor = WEATHER_PRESETS[state.weather]?.factor ?? 1;
+      return T_c + (raw - T_c) * factor;
     }
 
     function dayMeta(hour) {
@@ -2223,16 +2377,20 @@
       const clampedHour = clamp(state.currentHour, minHour, maxHour);
       const x = padX + ((clampedHour - minHour) / spanHour) * (width - padX * 2);
       let yValue = minValue;
-      for (let i = 0; i < state.daySeries.length - 1; i += 1) {
-        const a = state.daySeries[i];
-        const b = state.daySeries[i + 1];
-        if (clampedHour >= a.hour && clampedHour <= b.hour) {
-          const t = (clampedHour - a.hour) / (b.hour - a.hour || 1);
-          yValue = a.power_mW + (b.power_mW - a.power_mW) * t;
-          break;
+      if (state.currentData) {
+        yValue = Number(state.currentData.resultados?.P_electrica_mW || 0);
+      } else {
+        for (let i = 0; i < state.daySeries.length - 1; i += 1) {
+          const a = state.daySeries[i];
+          const b = state.daySeries[i + 1];
+          if (clampedHour >= a.hour && clampedHour <= b.hour) {
+            const t = (clampedHour - a.hour) / (b.hour - a.hour || 1);
+            yValue = a.power_mW + (b.power_mW - a.power_mW) * t;
+            break;
+          }
         }
       }
-      const y = height - padY - ((yValue - minValue) / (maxValue - minValue || 1)) * (height - padY * 2);
+      const y = height - padY - ((clamp(yValue, minValue, maxValue) - minValue) / (maxValue - minValue || 1)) * (height - padY * 2);
 
       ctxChart.fillStyle = "#ffb300";
       ctxChart.strokeStyle = "#ffffff";
@@ -2241,6 +2399,39 @@
       ctxChart.arc(x, y, 6, 0, Math.PI * 2);
       ctxChart.fill();
       ctxChart.stroke();
+    }
+
+    const formulaPrevValues = [0, 0, 0, 0, 0, 0];
+    const FORMULA_STEP_DELAY_MS = 220;
+    const FORMULA_TWEEN_MS = 500;
+
+    function pulseRow(rowEl, delay) {
+      setTimeout(() => {
+        rowEl.classList.remove("pulse");
+        void rowEl.offsetWidth;
+        rowEl.classList.add("pulse");
+      }, delay);
+    }
+
+    function tweenNumber(el, from, to, duration, formatter, delay) {
+      const startAt = performance.now() + delay;
+      function step(now) {
+        if (now < startAt) {
+          requestAnimationFrame(step);
+          return;
+        }
+        const t = clamp((now - startAt) / duration, 0, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = formatter(from + (to - from) * eased);
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function replayFormulaReveal() {
+      Array.from(els.formulaList.children).forEach((rowEl, i) => {
+        pulseRow(rowEl, i * FORMULA_STEP_DELAY_MS);
+      });
     }
 
     function renderFormulas(data) {
@@ -2260,46 +2451,65 @@
         {
           exp: `<i>V</i> = <span class="v-alpha">α</span>·(<span class="v-th"><i>T</i><sub>h</sub></span> − <span class="v-tc"><i>T</i><sub>c</sub></span>)`,
           sub: `${(0.05).toFixed(2)} × (${T_h.toFixed(2)} − ${T_c.toFixed(2)})`,
-          result: `→ ${fmt2(V)} V`,
+          value: V,
+          fmt: (v) => `→ ${fmt2(v)} V`,
         },
         {
           exp: `<i>I</i> = <span class="frac"><span class="num"><i>V</i></span><span class="den">(<i>R</i> + <i>R</i><sub>L</sub>)</span></span>`,
           sub: `<span class="frac"><span class="num">${fmt2(V)}</span><span class="den">(2.0 + 10.0)</span></span>`,
-          result: `→ ${fmt3(I)} A`,
+          value: I,
+          fmt: (v) => `→ ${fmt3(v)} A`,
         },
         {
           exp: `<i>P</i> = <i>I</i><sup>2</sup> · <i>R</i><sub>L</sub>`,
           sub: `(${fmt3(I)})² × 10`,
-          result: `→ ${fmt2(PmW)} mW`,
+          value: PmW,
+          fmt: (v) => `→ ${fmt2(v)} mW`,
         },
         {
           exp: `<i>Q</i> = <span class="v-alpha">α</span><i>I</i><span class="v-tc"><i>T</i><sub>c</sub></span> + <span class="v-const"><i>K</i></span>·Δ<i>T</i> − ½<i>I</i><sup>2</sup><i>R</i><sub>L</sub>`,
           sub: `${(0.05).toFixed(2)}·${fmt3(I)}·${T_c.toFixed(2)} + 0.6·${deltaT.toFixed(2)} − ½·(${fmt3(I)})²·10`,
-          result: `→ ${fmt2(Q)} W`,
+          value: Q,
+          fmt: (v) => `→ ${fmt2(v)} W`,
         },
         {
           exp: `<i>q</i> = <span class="frac"><span class="num"><span class="v-const"><i>k</i></span>·<i>A</i>·Δ<i>T</i></span><span class="den">Δ<i>x</i></span></span>`,
           sub: `<span class="frac"><span class="num">385·0.10·${deltaT.toFixed(2)}</span><span class="den">0.03</span></span>`,
-          result: `→ ${fmt2(q)} W`,
+          value: q,
+          fmt: (v) => `→ ${fmt2(v)} W`,
         },
         {
           exp: `<span class="v-eta">η</span> = <span class="frac"><span class="num"><i>P</i></span><span class="den"><i>Q</i></span></span> × 100`,
           sub: `<span class="frac"><span class="num">${fmt2(PmW)}</span><span class="den">${fmt2(Q)}</span></span> × 100`,
-          result: `→ ${fmt2(eta)} %`,
+          value: eta,
+          fmt: (v) => `→ ${fmt2(v)} %`,
         },
       ];
 
-      els.formulaList.innerHTML = rows.map((row) => {
-        return `
-          <div class="formula-item">
+      if (els.formulaList.children.length !== rows.length) {
+        els.formulaList.innerHTML = rows.map((row, i) => `
+          <div class="formula-item" data-row="${i}">
             <div>
               <div class="formula-exp">${row.exp}</div>
               <div class="formula-sub">${row.sub}</div>
             </div>
-            <div class="formula-val">${row.result}</div>
+            <div class="formula-val">${row.fmt(row.value)}</div>
           </div>
-        `;
-      }).join("");
+        `).join("");
+        rows.forEach((row, i) => { formulaPrevValues[i] = row.value; });
+        replayFormulaReveal();
+        return;
+      }
+
+      const rowEls = els.formulaList.children;
+      rows.forEach((row, i) => {
+        const rowEl = rowEls[i];
+        rowEl.querySelector(".formula-sub").innerHTML = row.sub;
+        const delay = i * FORMULA_STEP_DELAY_MS;
+        pulseRow(rowEl, delay);
+        tweenNumber(rowEl.querySelector(".formula-val"), formulaPrevValues[i], row.value, FORMULA_TWEEN_MS, row.fmt, delay);
+        formulaPrevValues[i] = row.value;
+      });
     }
 
     function updateUIFromResult(data, hour, T_h, T_c) {
@@ -2333,7 +2543,7 @@
 
     function calcularLocal(hour) {
       const T_c = 18.5;
-      const T_h = interpolateTh(hour);
+      const T_h = effectiveTh(hour);
       if (hour < 10 || hour > 19) {
         return {
           inputs: { T_h: 0, T_c, delta_T: 0 },
@@ -2383,14 +2593,33 @@
       };
     }
 
+    let hourRequestSeq = 0;
+    let backendDownUntil = 0;
+    const BACKEND_RETRY_COOLDOWN_MS = 5000;
+
     async function fetchFromBackend(hour) {
+      const seq = ++hourRequestSeq;
+      const applyIfCurrent = (fn) => {
+        if (seq === hourRequestSeq) fn();
+      };
       const T_c = 18.5;
-      const T_h = interpolateTh(hour);
+      const T_h = effectiveTh(hour);
 
       if (hour < 10 || hour > 19) {
         const local = calcularLocal(hour);
-        setBackendStatus(false);
-        updateUIFromResult(local, hour, 0, T_c);
+        applyIfCurrent(() => {
+          setBackendStatus(false);
+          updateUIFromResult(local, hour, 0, T_c);
+        });
+        return local;
+      }
+
+      if (Date.now() < backendDownUntil) {
+        const local = calcularLocal(hour);
+        applyIfCurrent(() => {
+          setBackendStatus(false);
+          updateUIFromResult(local, hour, T_h, T_c);
+        });
         return local;
       }
 
@@ -2402,13 +2631,18 @@
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setBackendStatus(true);
-        updateUIFromResult(data, hour, T_h, T_c);
+        applyIfCurrent(() => {
+          setBackendStatus(true);
+          updateUIFromResult(data, hour, T_h, T_c);
+        });
         return data;
       } catch (error) {
+        backendDownUntil = Date.now() + BACKEND_RETRY_COOLDOWN_MS;
         const local = calcularLocal(hour);
-        setBackendStatus(false);
-        updateUIFromResult(local, hour, T_h, T_c);
+        applyIfCurrent(() => {
+          setBackendStatus(false);
+          updateUIFromResult(local, hour, T_h, T_c);
+        });
         return local;
       }
     }
@@ -2435,12 +2669,106 @@
       drawChart();
     }
 
-    async function onSliderChange() {
-      const hour = Number(els.timeSlider.value);
+    async function setHour(hour) {
       state.currentHour = hour;
+      els.timeSlider.value = hour.toFixed(1);
       updateSky(hour);
       await fetchFromBackend(hour);
       drawChart();
+    }
+
+    async function onSliderChange() {
+      await setHour(Number(els.timeSlider.value));
+    }
+
+    function hourFromTrackPointer(clientY) {
+      const rect = els.track.getBoundingClientRect();
+      const y = clamp(clientY, rect.top, rect.bottom);
+      const ratio = clamp((rect.bottom - y) / rect.height, 0, 1);
+      return Math.round(ratio * 24 * 10) / 10;
+    }
+
+    let draggingSun = false;
+    let sunDragRafPending = false;
+    let sunDragPendingHour = null;
+
+    function onTrackPointerDown(event) {
+      if (state.playingDay) return;
+      draggingSun = true;
+      els.marker.classList.add("dragging");
+      els.track.setPointerCapture(event.pointerId);
+      setHour(hourFromTrackPointer(event.clientY));
+    }
+
+    function onTrackPointerMove(event) {
+      if (!draggingSun) return;
+      sunDragPendingHour = hourFromTrackPointer(event.clientY);
+      if (sunDragRafPending) return;
+      sunDragRafPending = true;
+      requestAnimationFrame(() => {
+        sunDragRafPending = false;
+        if (sunDragPendingHour != null) {
+          setHour(sunDragPendingHour);
+          sunDragPendingHour = null;
+        }
+      });
+    }
+
+    function onTrackPointerUp() {
+      draggingSun = false;
+      els.marker.classList.remove("dragging");
+    }
+
+    els.track.addEventListener("pointerdown", onTrackPointerDown);
+    els.track.addEventListener("pointermove", onTrackPointerMove);
+    els.track.addEventListener("pointerup", onTrackPointerUp);
+    els.track.addEventListener("pointercancel", onTrackPointerUp);
+
+    function playDaySimulation() {
+      if (state.playingDay) return;
+      state.playingDay = true;
+      els.playDayBtn.disabled = true;
+      els.playDayBtn.textContent = "Reproduciendo...";
+      els.timeSlider.disabled = true;
+      Array.from(els.weatherOptions.children).forEach((b) => { b.disabled = true; });
+
+      const totalMs = 12000;
+      const startTime = performance.now();
+      let lastHeavyHour = -1;
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const hour = clamp((elapsed / totalMs) * 24, 0, 24);
+        state.currentHour = hour;
+        els.timeSlider.value = hour.toFixed(1);
+        updateSky(hour);
+        const local = calcularLocal(hour);
+        state.currentData = local;
+        els.powerBig.textContent = fmt2(local.resultados.P_electrica_mW || 0);
+        drawChart();
+
+        if (Math.floor(hour) !== Math.floor(lastHeavyHour)) {
+          updateUIFromResult(local, hour, local.inputs.T_h, local.inputs.T_c);
+          lastHeavyHour = hour;
+        }
+
+        if (elapsed < totalMs) {
+          requestAnimationFrame(step);
+        } else {
+          finishPlayback();
+        }
+      }
+
+      async function finishPlayback() {
+        state.playingDay = false;
+        els.playDayBtn.disabled = false;
+        els.playDayBtn.textContent = "Reproducir día completo";
+        els.timeSlider.disabled = false;
+        Array.from(els.weatherOptions.children).forEach((b) => { b.disabled = false; });
+        await setHour(state.currentHour);
+      }
+
+      requestAnimationFrame(step);
     }
 
     function schedulePulse() {
@@ -2455,14 +2783,6 @@
       ctxChart.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
     }
 
-    function openFormulasModal() {
-      els.formulaModalOverlay.classList.remove("hidden");
-    }
-
-    function closeFormulasModal() {
-      els.formulaModalOverlay.classList.add("hidden");
-    }
-
     function openBuildModal() {
       els.buildModalOverlay.classList.remove("hidden");
     }
@@ -2472,11 +2792,6 @@
     }
 
     els.timeSlider.addEventListener("input", onSliderChange);
-    els.formulasBtn.addEventListener("click", openFormulasModal);
-    els.formulaModalClose.addEventListener("click", closeFormulasModal);
-    els.formulaModalOverlay.addEventListener("click", (event) => {
-      if (event.target === els.formulaModalOverlay) closeFormulasModal();
-    });
     els.buildBtn.addEventListener("click", openBuildModal);
     els.buildModalClose.addEventListener("click", closeBuildModal);
     els.buildModalOverlay.addEventListener("click", (event) => {
@@ -2484,7 +2799,6 @@
     });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
-        closeFormulasModal();
         closeBuildModal();
       }
     });
@@ -2523,6 +2837,19 @@
       resizeCanvases();
       drawChart();
     });
+
+    Array.from(els.weatherOptions.children).forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (state.playingDay || state.weather === btn.dataset.weather) return;
+        state.weather = btn.dataset.weather;
+        Array.from(els.weatherOptions.children).forEach((b) => {
+          b.classList.toggle("active", b === btn);
+        });
+        setHour(state.currentHour);
+      });
+    });
+
+    els.playDayBtn.addEventListener("click", playDaySimulation);
 
     async function init() {
       resizeCanvases();
