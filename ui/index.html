@@ -2546,7 +2546,7 @@
       const T_h = effectiveTh(hour);
       if (hour < 10 || hour > 19) {
         return {
-          inputs: { T_h: 0, T_c, delta_T: 0 },
+          inputs: { T_h: T_c, T_c, delta_T: 0 },
           resultados: {
             V_teg_V: 0,
             I_A: 0,
@@ -2609,7 +2609,7 @@
         const local = calcularLocal(hour);
         applyIfCurrent(() => {
           setBackendStatus(false);
-          updateUIFromResult(local, hour, 0, T_c);
+          updateUIFromResult(local, hour, T_c, T_c);
         });
         return local;
       }
