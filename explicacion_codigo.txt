@@ -1,0 +1,648 @@
+ASPHALT-TEG SIMULATOR - EXPLICACION DEL CODIGO POR BLOQUES
+=============================================================
+
+Nota antes de empezar: ya existe un archivo aparte, formulas_explicacion.txt,
+con la explicacion FISICA y pedagogica completa (el "cuento" de por que
+funciona un TEG, paso a paso). Este archivo es distinto: recorre el CODIGO
+tal cual esta escrito, bloque por bloque, archivo por archivo, explicando
+que hace cada parte y en que lugar exacto viven las formulas. Usalo como
+mapa para navegar el proyecto.
+
+
+=============================================================
+0) ESTRUCTURA GENERAL DE ARCHIVOS
+=============================================================
+
+  backend/
+    main.py                 -> servidor FastAPI, los endpoints de la API
+    models.py                -> "moldes" de datos (Pydantic) que validan
+                                 lo que entra y sale de la API
+    teg_engine.py             -> TODAS las formulas de fisica y economia
+                                 (el cerebro matematico del proyecto)
+    data/temperature_data.py -> la tabla de temperaturas reales, medida
+                                 en el paper (Tahami et al. 2019)
+
+  ui/index.html               -> un unico archivo con HTML + CSS + JS.
+                                 Es toda la interfaz visual (la pagina
+                                 que ves en pantalla). No usa ningun
+                                 framework ni paso de compilacion.
+
+  main.py (en la raiz)        -> lanzador de escritorio (pywebview): abre
+                                 ui/index.html en una ventana nativa.
+
+  estado_proyecto.txt         -> resumen del estado del proyecto y del
+                                 historial de la sesion, para retomar
+                                 trabajo en otra PC.
+  formulas_explicacion.txt    -> la explicacion fisica/pedagogica de las
+                                 6 formulas centrales.
+  explicacion_codigo.txt      -> este archivo.
+
+Como corren las cosas: el backend expone una API REST en
+http://localhost:8000 (hay que iniciarlo aparte, desde backend/, con
+"py main.py"). La interfaz (ui/index.html) intenta usar esa API, y si no
+la encuentra (backend apagado, sin conexion, error de red) usa una copia
+identica de las formulas escrita directamente en JavaScript. Por eso el
+backend es opcional: la app funciona igual, solo que calculando todo
+"a mano" en el navegador.
+
+
+=============================================================
+1) BACKEND - backend/teg_engine.py
+=============================================================
+Este archivo es un conjunto de funciones puras (sin efectos secundarios,
+sin guardar nada): reciben numeros, devuelven numeros. Se organiza en
+tres capas: constantes -> formulas basicas -> funciones "build_*" que
+arman las respuestas completas que la API entrega.
+
+--------------------------------------------------------------
+BLOQUE 1.1 - Constantes fisicas y economicas (lineas 12-29)
+--------------------------------------------------------------
+  ALPHA = 0.05          V/C     coeficiente Seebeck del modulo TEG
+  R_INT = 2.0           ohm     resistencia interna del TEG
+  R_LOAD = 10.0         ohm     resistencia de carga por defecto
+  K_TEG = 0.6           W/C     conductividad termica del TEG
+  K_COPPER = 385.0      W/(m*C) conductividad termica del cobre
+  PLATE_LENGTH = 0.50   m       largo de la placa de cobre
+  PLATE_WIDTH = 0.20    m       ancho de la placa de cobre
+  PLATE_THICKNESS = 0.0015 m    espesor de la placa de cobre
+  PLATE_DEPTH = 0.03    m       profundidad usada en la formula de Fourier
+  NUM_TEG = 2                   cantidad de modulos TEG del prototipo
+  TEG_AREA = 0.04*0.04  m2      area de cada modulo TEG (4x4 cm)
+  T_PCM = 18.0          C       temperatura tipica del disipador con PCM
+  P_MAX_FIELD = 34.0    mW      potencia maxima medida en el campo (paper)
+  P_AVE_FIELD = 29.0    mW      potencia promedio medida en el campo (paper)
+  COST_UNIT = 150.0     USD     costo de capital asumido por unidad/placa
+  LIFETIME = 20         anios   vida util asumida para el analisis LCOE
+  DISCOUNT_RATE = 0.03  -       tasa de descuento anual para LCOE
+  PAPER_ROAD_LCOE_USD_KWH = 0.9 -  LCOE de carretera citado directo del paper
+
+Todos estos valores vienen del prototipo real y del paper, no son
+inventados (ver formulas_explicacion.txt para el detalle de cada uno).
+
+--------------------------------------------------------------
+BLOQUE 1.2 - Validaciones (validate_temperature_pair)
+--------------------------------------------------------------
+  Chequea que Th y Tc esten en un rango fisico razonable (-50 a 250 C)
+  y que Th sea siempre mayor que Tc (si no, no hay diferencia de
+  temperatura util y el calculo no tiene sentido). Si falla, lanza un
+  ValueError con un mensaje en espanol que despues la API convierte en
+  un error HTTP 400.
+
+--------------------------------------------------------------
+BLOQUE 1.3 - Utilidades de datos (mean_temperature, get_table_hour)
+--------------------------------------------------------------
+  mean_temperature(min, max)  -> promedio simple de dos valores. Se usa
+                                  porque la tabla del paper da un rango
+                                  (T_asf_min, T_asf_max) para cada hora,
+                                  y el modelo trabaja con un unico valor
+                                  de Th (el promedio de ese rango).
+  get_table_hour(hora)        -> busca una fila de TEMPERATURE_TABLE por
+                                  su hora (ej. "13:00") y la devuelve.
+
+--------------------------------------------------------------
+BLOQUE 1.4 - LAS 6 FORMULAS NUCLEO (lineas 56-99)
+--------------------------------------------------------------
+  Esta es la cadena central de todo el proyecto. Cada funcion es UNA
+  formula. Se ejecutan en este orden, cada una usando el resultado de
+  la anterior:
+
+  (1) calculate_voltage(alpha, T_h, T_c)
+        V = alpha * (T_h - T_c)
+      Voltaje generado por efecto Seebeck: proporcional a la diferencia
+      de temperatura entre las dos caras del modulo TEG.
+
+  (2) calculate_current(V, R, R_L)
+        I = V / (R + R_L)
+      Ley de Ohm: la corriente que circula depende del voltaje y de la
+      resistencia total del circuito (la interna del TEG + la de carga).
+
+  (3) calculate_power(I, R_L)
+        P = I^2 * R_L
+      Potencia electrica que efectivamente llega a la carga (la que se
+      puede aprovechar).
+
+  (4) calculate_heat(alpha, I, T_c, K, T_h, T_c_2, R_L)
+        Q = alpha * I * T_c + K * (T_h - T_c) - 0.5 * I^2 * R_L
+      Balance de calor en el lado caliente del modulo: suma el termino
+      Peltier (alpha*I*Tc), la conduccion termica propia del material
+      (K*deltaT) y resta la mitad de las perdidas resistivas (Joule).
+      Este Q es "cuanto calor esta pasando" por el modulo mientras
+      genera electricidad, y sirve de referencia para la eficiencia.
+
+  (5) calculate_copper_flux(k_copper, area, delta_T, delta_x)
+        q = k_copper * A * delta_T / delta_x
+      Ley de Fourier de conduccion de calor: cuanto calor puede
+      transportar la placa de cobre entre el asfalto y el TEG. Es
+      independiente de la parte electrica (I, P, Q); solo depende de
+      la geometria de la placa y el material.
+
+  (6) calculate_efficiency(P, Q)
+        eta = (P / Q) * 100
+      Que porcentaje del calor que atraviesa el modulo se convierte en
+      electricidad util. Lanza un error si Q <= 0 (division por cero).
+
+--------------------------------------------------------------
+BLOQUE 1.5 - Formulas economicas (lineas 102-118)
+--------------------------------------------------------------
+  calculate_annualized_cost(costo_capital, anios_vida, tasa_descuento)
+        costo_anualizado = costo_capital * (r*(1+r)^n) / ((1+r)^n - 1)
+      Factor de recuperacion de capital: convierte un costo inicial
+      (pagado una sola vez) en una cuota anual equivalente, tomando en
+      cuenta la vida util del equipo y una tasa de descuento (el "costo
+      de oportunidad" del dinero en el tiempo). Si la tasa es 0, se
+      reparte el costo en partes iguales por anio.
+
+  calculate_lcoe(costo_anualizado, energia_anual_kwh)
+        LCOE = costo_anualizado / energia_anual_kwh
+      "Levelized Cost of Energy": cuanto cuesta producir un kWh con
+      este sistema, en dolares. Sirve para comparar la viabilidad
+      economica contra otras fuentes de energia.
+
+--------------------------------------------------------------
+BLOQUE 1.6 - build_calculation() (lineas 121-182): EL ORQUESTADOR
+--------------------------------------------------------------
+  Es la funcion mas importante del archivo. Recibe T_h, T_c, R_L y
+  num_teg, corre las 6 formulas del Bloque 1.4 en cadena, y arma un
+  diccionario con 4 partes (esta forma se repite en TODAS las funciones
+  build_* del proyecto, y es literalmente el contrato de la API):
+
+    "inputs"            -> todos los valores usados como entrada
+    "resultados"        -> V, I, P (en W y mW), P_total (multiplicado
+                            por num_teg), Q, eta, q
+    "formulas_aplicadas"-> texto legible de cada formula con los
+                            numeros ya sustituidos (para mostrar en
+                            pantalla)
+    "fuente"             -> de donde sale la formula (cita al paper)
+
+  Nota: P_total_mW y Q_total_modulos_W multiplican P y Q por num_teg,
+  porque el prototipo real usa 2 modulos TEG en paralelo/serie fisico,
+  no uno solo.
+
+--------------------------------------------------------------
+BLOQUE 1.7 - Simulacion por hora y por dia (lineas 185-268)
+--------------------------------------------------------------
+  build_hour_simulation(hora, T_c, R_L, num_teg)
+      Busca la fila de la tabla real para esa hora (ej "13:00"), calcula
+      T_h como el promedio de T_asf_min/T_asf_max, y le aplica
+      build_calculation().
+
+  extend_day_hours()
+      La tabla del paper solo mide hasta las 16:00. Esta funcion agrega
+      "a mano" las horas 17:00, 18:00 y 19:00, extendiendo la tendencia
+      (la diferencia entre la ultima hora medida y la anterior) de forma
+      lineal. Cada fila extendida queda marcada con la nota "Estimacion
+      lineal a partir de la tendencia del paper", para no confundirla
+      con dato medido.
+
+  build_day_simulation(T_c, R_L, num_teg)
+      Llama a extend_day_hours() y corre build_calculation() para cada
+      hora entre las 10:00 y las 19:00, armando la serie completa que
+      alimenta el grafico "Curva del dia" de la interfaz. Cada fila
+      queda etiquetada "tabla_paper" (real) o "estimado" (extrapolada).
+
+--------------------------------------------------------------
+BLOQUE 1.8 - build_road_scaling() (lineas 271-307)
+--------------------------------------------------------------
+        Psm = P_ave / A_placa                (potencia por m2)
+        Pps = Psm * A_carretera               (potencia total de la seccion)
+        P_8h = Pps * horas * 3600             (energia en Joules)
+        P_kwh = P_8h / 3_600_000              (energia en kWh)
+
+  Toma la potencia PROMEDIO medida en el prototipo de laboratorio
+  (0.5 x 0.2 m) y la escala a una seccion de carretera real (ancho x
+  largo, por defecto 10 m x 1000 m en la interfaz), asumiendo que cada
+  metro cuadrado de carretera genera lo mismo que el prototipo por
+  metro cuadrado. Es la formula detras del numero "23.2 kWh/dia" que
+  aparece en la tarjeta de alumbrado publico de la interfaz.
+
+--------------------------------------------------------------
+BLOQUE 1.9 - build_viability() (lineas 310-354)
+--------------------------------------------------------------
+  Usa calculate_annualized_cost() y calculate_lcoe() (Bloque 1.5) para
+  calcular el LCOE del prototipo de laboratorio, y lo muestra al lado
+  del LCOE que el paper reporta para una carretera real (0.9 USD/kWh),
+  aclarando que NO son directamente comparables (uno es un prototipo
+  aislado de 0.1 m2, el otro es una carretera completa, y el paper no
+  publica el costo de capital asumido a esa escala).
+
+--------------------------------------------------------------
+BLOQUE 1.10 - build_compare_configurations() (lineas 357-391)
+--------------------------------------------------------------
+  Compara la placa de cobre en forma de "Z" contra la forma de "L".
+  El paper no da una formula separada para la forma Z: lo que hace el
+  codigo es modelar la mejora de la forma L como "+8 C en Th respecto a
+  Z" (una nota del paper), y corre build_calculation() dos veces (una
+  con T_h normal para "Z", otra con T_h+8 para "L"), comparando la
+  potencia resultante.
+
+--------------------------------------------------------------
+BLOQUE 1.11 - build_max_density() (lineas 394-408)
+--------------------------------------------------------------
+  Devuelve un valor fijo reportado en el paper (3.02 mW/cm3) convertido
+  a W/m3. No calcula nada, solo cita y convierte unidades.
+
+
+=============================================================
+2) BACKEND - backend/models.py
+=============================================================
+Define los "moldes" (Pydantic) que validan lo que entra y sale de la
+API. Todos heredan de BaseApiModel, que tiene dos reglas globales:
+  - extra="forbid"          -> si mandas un campo que no existe, la API
+                                rechaza la peticion (evita errores
+                                silenciosos por typos).
+  - str_strip_whitespace     -> recorta espacios en blanco de los textos
+                                automaticamente.
+
+  CalculationRequest          -> lo que pide POST /calcular (T_h, T_c,
+                                  R_L, num_teg). Valida que T_h y T_c
+                                  esten en rango fisico y que T_h > T_c
+                                  ANTES de llegar a teg_engine.py.
+  HourSimulationRequest       -> lo que pide POST /simular-hora.
+  RoadScalingRequest          -> lo que pide POST /escalar-carretera.
+  CompareConfigurationsRequest-> lo que pide POST /comparar-configuraciones.
+  GenericApiResponse          -> la forma de respuesta comun a casi
+                                  todos los endpoints (inputs/resultados/
+                                  formulas_aplicadas/fuente).
+  TemperaturesResponse        -> la forma de respuesta de GET /temperaturas.
+
+
+=============================================================
+3) BACKEND - backend/main.py (la capa API)
+=============================================================
+Es "delgado" a proposito: cada endpoint valida la peticion con un
+modelo de models.py y llama directo a una funcion build_*() de
+teg_engine.py, sin logica propia. El CORS esta abierto a cualquier
+origen (allow_origins=["*"]) porque es una app de escritorio local,
+hablando siempre con localhost.
+
+  GET  /                          -> estado del servicio + constantes
+  POST /calcular                  -> build_calculation()
+  POST /simular-hora              -> build_hour_simulation()
+  GET  /simular-dia-completo      -> build_day_simulation()
+  GET  /temperaturas              -> tabla real + prueba de campo
+  POST /escalar-carretera         -> build_road_scaling()
+  GET  /viabilidad                -> build_viability()
+  POST /comparar-configuraciones  -> build_compare_configurations()
+  GET  /maxima-densidad-potencia  -> build_max_density()
+
+Al final del archivo, "uvicorn.run(app, host=0.0.0.0, port=8000)" es lo
+que efectivamente prende el servidor cuando corres "py main.py".
+
+
+=============================================================
+4) BACKEND - backend/data/temperature_data.py
+=============================================================
+  TEMPERATURE_TABLE -> lista con una fila por cada hora de 10:00 a
+                        16:00, con T_aire_min/max y T_asf_min/max
+                        medidos en el paper, mas una nota descriptiva.
+                        Es la "verdad medida" que usa todo el sistema.
+  FIELD_TEST         -> resumen de la prueba de campo real: rangos de
+                        temperatura de superficie/cobre/suelo/disipador,
+                        y la potencia maxima/promedio medida (34 mW /
+                        29 mW), que son las constantes P_MAX_FIELD y
+                        P_AVE_FIELD usadas en teg_engine.py.
+
+
+=============================================================
+5) FRONTEND - ui/index.html
+=============================================================
+Es un unico archivo (2800+ lineas) con tres partes: <style> (CSS),
+el HTML de la pagina, y un <script> al final con todo el JavaScript.
+No hay build ni framework: se abre directo en el navegador o dentro
+de la ventana de pywebview.
+
+--------------------------------------------------------------
+BLOQUE 5.1 - HTML: estructura de la pagina
+--------------------------------------------------------------
+  <aside class="time-col">   -> la barra vertical con el sol arrastrable
+                                 (control de la hora)
+  <section class="center-col">
+    .eyebrow                 -> titulo + boton "Ver construccion"
+    .sky / .sky-shell        -> el cielo animado (dia/noche) y adentro:
+      .teg-scene / #sceneSvg -> el dibujo SVG de la maqueta: asfalto,
+                                 placa de cobre en L (con lineas de
+                                 cota, como un plano de ingenieria),
+                                 chip TEG, disipador, regulador,
+                                 bateria principal, farola, y los cables
+                                 que los conectan.
+    .formula-strip            -> la franja de tarjetas de formulas,
+                                 debajo del dibujo (ver Bloque 5.7)
+  <aside class="right">       -> panel lateral dividido en 2 cajas:
+      #liveBox                -> "Estado en vivo": potencia actual,
+                                 grafico de la curva del dia, slider de
+                                 hora
+      #toolsBox                -> "Herramientas interactivas": editor
+                                 de voltaje, simulador de carga de
+                                 bateria, alumbrado publico, clima +
+                                 simulacion rapida del dia
+  Modales (ocultos hasta que se abren):
+      #buildModalOverlay       -> "Ver construccion": ficha tecnica
+                                 completa del prototipo
+      (el modal de formulas ya no existe: las formulas se movieron a
+      la franja fija .formula-strip, siempre visible)
+
+--------------------------------------------------------------
+BLOQUE 5.2 - CSS
+--------------------------------------------------------------
+  Variables de color en :root (--bg, --accent, --good, etc). Todo el
+  layout principal usa CSS Grid: .app tiene 3 columnas (barra de
+  tiempo, escena central, panel lateral), .center-col tiene 3 filas
+  (titulo / escena / franja de formulas), .right tiene 2 filas iguales
+  (las 2 cajas del panel lateral). Hay una seccion @media (max-width:
+  860px) al final que reordena todo en una sola columna para pantallas
+  chicas (celular).
+
+--------------------------------------------------------------
+BLOQUE 5.3 - JS: estado y constantes globales
+--------------------------------------------------------------
+  const state = {...}    -> UN SOLO objeto con todo el estado vivo de
+                             la app: hora actual, si el backend esta
+                             conectado, la serie del dia, el clima
+                             elegido, la carga de la bateria, etc.
+  const els = {...}      -> todas las referencias a elementos del DOM
+                             (document.getElementById), guardadas una
+                             sola vez al cargar la pagina.
+  DEVICES / BATTERIES     -> catalogos fijos para el "Editor de voltaje"
+                             y el "Simulador de carga de bateria".
+  WEATHER_PRESETS         -> los 3 climas (ver Bloque 5.4).
+  tablaTemp                -> copia reducida (10:00-16:00) de la tabla
+                             real del paper, para poder calcular en el
+                             navegador sin depender del backend.
+  scene = { bulbs, batteries } -> las listas de componentes arrastrables
+                             que hay actualmente en la escena SVG.
+
+--------------------------------------------------------------
+BLOQUE 5.4 - Temperatura y clima: interpolateTh(), effectiveTh()
+--------------------------------------------------------------
+  interpolateTh(hour)
+      Dado un numero de hora con decimales (ej 13.4), interpola
+      linealmente entre las filas de tablaTemp para dar un T_h continuo
+      (la tabla real solo tiene un valor por hora entera). Fuera de las
+      10:00-19:00 devuelve 0 (no hay sol). De 16:00 a 19:00 extrapola
+      linealmente igual que extend_day_hours() en el backend.
+
+  effectiveTh(hour)  <-- FORMULA NUEVA (clima)
+        T_h_final = T_c + (T_h_soleado - T_c) * factor_clima
+      Toma el T_h "soleado" real (interpolateTh) y lo acerca a la
+      temperatura ambiente T_c=18.5 segun el clima elegido. factor_clima
+      sale de WEATHER_PRESETS:
+        soleado  -> factor 1.00  (sin cambios, el dato real del paper)
+        nublado  -> factor 0.55  (el asfalto se calienta bastante menos)
+        lluvioso -> factor 0.22  (casi no se calienta)
+      Como la potencia P es proporcional al cuadrado de (T_h - T_c), un
+      factor 0.22 en la temperatura termina siendo aprox. 0.22^2 = 4.8%
+      de la potencia de un dia soleado: por eso un dia lluvioso genera
+      mucha menos energia, no solo "un poco menos". Es una simulacion
+      ILUSTRATIVA (no viene de datos medidos en el paper), pensada para
+      mostrar el efecto del clima en una presentacion.
+      effectiveTh() reemplaza a interpolateTh() en TODOS los lugares
+      donde antes se usaba T_h para calcular (calcularLocal,
+      fetchFromBackend), asi que el clima afecta absolutamente toda la
+      cadena de formulas, no solo un numero suelto.
+
+  dayMeta(hour)
+      Devuelve si hay sol o no, la fase del dia ("Noche",
+      "Amanecer/Atardecer", "Dia") y las horas de sol acumuladas, para
+      los textos "Fase: Dia - Sol: 6.00 h" de la interfaz.
+
+--------------------------------------------------------------
+BLOQUE 5.5 - Calculo local: calcularLocal(hour)
+--------------------------------------------------------------
+  Es una COPIA EXACTA en JavaScript de build_calculation() del backend
+  (Bloque 1.4/1.6), formula por formula:
+        V = alpha * (Th - Tc)
+        I = V / (R + RL)
+        P = I^2 * RL * 1000        (mW)
+        Q = alpha*I*Tc + K*(Th-Tc) - 0.5*I^2*RL
+        q = k*A*(Th-Tc) / dx
+        eta = (P/1000) / Q * 100
+  con las mismas constantes (alpha=0.05, R=2, RL=10, K=0.6, k=385,
+  A=0.10, dx=0.03). Se usa cuando el backend no responde, para que la
+  app nunca se quede sin numeros. IMPORTANTE: si algun dia se cambia
+  una formula en teg_engine.py, hay que cambiar tambien esta funcion
+  para que no queden desincronizadas.
+
+  Fuera de las 10:00-19:00 (sin sol), devuelve un resultado especial
+  con T_h = T_c (equilibrio termico, sin diferencia de temperatura) y
+  todo en cero. Antes T_h se forzaba a 0 literal, lo cual generaba una
+  inconsistencia visual (el desglose de la formula de V mostraba
+  "0.05 x (0.00 - 18.50)" que da -0.93, pero al lado se mostraba
+  "-> 0.00 V"); se corrigio para que T_h = T_c de noche, asi el
+  desglose y el resultado siempre coinciden.
+
+--------------------------------------------------------------
+BLOQUE 5.6 - Comunicacion con el backend: fetchFromBackend(hour)
+--------------------------------------------------------------
+  Intenta POST /calcular contra el backend real con el T_h ya ajustado
+  por clima (effectiveTh). Si responde bien, usa esos datos. Si falla
+  (backend apagado, error de red), cae automaticamente a
+  calcularLocal(hour). Dos protecciones agregadas en esta sesion:
+
+  - hourRequestSeq (numero de secuencia): cada llamada a
+    fetchFromBackend() se numera. Si el usuario cambia de hora muy
+    rapido (arrastrando el sol, cambiando de clima seguido), pueden
+    quedar varias llamadas "en vuelo" al mismo tiempo; solo se le
+    permite actualizar la pantalla a la ULTIMA llamada iniciada, para
+    que una respuesta vieja no pise a una mas nueva.
+
+  - backendDownUntil / BACKEND_RETRY_COOLDOWN_MS (5000 ms): si un
+    intento de red falla, se anota la hora y durante los siguientes 5
+    segundos NO se vuelve a intentar la red (se va directo al calculo
+    local). Esto evita que la app se sienta lenta cuando el backend
+    esta apagado: sin este cooldown, cada cambio de hora reintentaba la
+    conexion, y los intentos repetidos a un puerto cerrado se iban
+    poniendo cada vez mas lentos.
+
+  loadDaySeries() hace lo mismo pero para GET /simular-dia-completo (la
+  curva completa del dia que alimenta el grafico), con su propio
+  fallback local generando 10 puntos con calcularLocal().
+
+--------------------------------------------------------------
+BLOQUE 5.7 - Panel de formulas en pantalla: renderFormulas(data)
+--------------------------------------------------------------
+  Arma las 6 tarjetas de formulas (V, I, P, Q, q, eta) que se ven en la
+  franja debajo del dibujo. Por cada formula genera 3 partes:
+    exp   -> la formula "bonita" en notacion matematica (con
+             fracciones, subindices, colores por variable)
+    sub   -> el mismo calculo pero con los NUMEROS reales sustituidos
+             (ej "0.05 x (58.50 - 18.50)")
+    value -> el resultado final, formateado con su unidad
+
+  Ademas tiene una animacion de "calculando en vivo": cada vez que
+  cambian los datos (nueva hora, nuevo clima), cada tarjeta se resalta
+  en secuencia (pulseRow, con 220 ms de diferencia entre una y otra) y
+  el numero final "cuenta" desde el valor anterior hasta el nuevo con
+  una animacion de 500 ms (tweenNumber, con una curva ease-out).
+  openFormulasModal ya no existe: como las formulas quedaron siempre
+  visibles (Bloque 5.1), la animacion se dispara sola cada vez que
+  cambia la hora o el clima, no hace falta abrir nada.
+
+--------------------------------------------------------------
+BLOQUE 5.8 - Escena grafica: updateTegScene(), tempToColor()
+--------------------------------------------------------------
+  updateTegScene(T_h, T_c, I, P) actualiza los textos de temperatura
+  sobre el dibujo (Th y Tc), el color degradado de la placa de cobre
+  (tempToColor mapea una temperatura a un color entre azul frio y
+  naranja caliente), y decide si hay "espacio" para seguir cargando la
+  bateria (chargeRoom) para animar el flujo de electrones.
+  updateSensorReadings() actualiza los numeros del modal "Ver
+  construccion" (temperatura de asfalto, cobre, disipador "en vivo").
+
+--------------------------------------------------------------
+BLOQUE 5.9 - El sol arrastrable (control de hora)
+--------------------------------------------------------------
+  setHour(hour)              -> funcion central: fija state.currentHour,
+                                 sincroniza el slider numerico, actualiza
+                                 el cielo (updateSky) y pide el calculo
+                                 (fetchFromBackend). La usan el slider,
+                                 el arrastre del sol y los botones de
+                                 clima.
+  hourFromTrackPointer(clientY) -> convierte una posicion Y de mouse/dedo
+                                 sobre la barra vertical en un numero de
+                                 hora (0 abajo, 24 arriba).
+  onTrackPointerDown/Move/Up -> el sol (imagen sol.png, antes era un
+                                 circulo simple) ahora se puede arrastrar
+                                 con el mouse o el dedo, o hacer clic
+                                 directo en cualquier punto de la barra
+                                 para saltar a esa hora. El movimiento se
+                                 agrupa por frame (requestAnimationFrame)
+                                 para no saturar de llamadas mientras se
+                                 arrastra.
+
+--------------------------------------------------------------
+BLOQUE 5.10 - Simulacion rapida del dia (con clima)
+--------------------------------------------------------------
+  playDaySimulation()
+      Al apretar "Reproducir dia completo", recorre las 24 horas en
+      unos 12 segundos (usando requestAnimationFrame), moviendo el sol,
+      actualizando el grafico y el panel de formulas, todo calculado
+      con calcularLocal() (calculo local, sin red, para que la
+      animacion sea fluida) y con el clima que este seleccionado en ese
+      momento (soleado/nublado/lluvioso). Mientras corre, desactiva el
+      slider y los botones para que no se pisen los controles; al
+      terminar, hace un ultimo fetchFromBackend() para dejar todo
+      sincronizado con el backend si esta disponible.
+
+--------------------------------------------------------------
+BLOQUE 5.11 - Componentes arrastrables (farolas, celulares, bateria)
+--------------------------------------------------------------
+  makeBulbGroup / makeBatteryGroup / makePhoneGroup
+      Fabrican, con codigo (no con HTML fijo), el dibujo SVG de una
+      farola, una bateria o un celular nuevos, cada vez que se aprieta
+      "+ Farola" o "+ Celular" (hasta MAX_EXTRA_COMPS = 4 de cada uno).
+  attachDrag / onDragPointerDown/Move/Up
+      Permiten arrastrar cualquier componente con el mouse; doble clic
+      lo quita (si es "removable", o sea no es el original de fabrica).
+  redrawWires() / elbowPoints() / animateElectrons()
+      Recalculan el cable (una linea en angulo recto) entre el
+      regulador -> bateria principal -> cada farola/celular cada vez
+      que algo se mueve, y animan puntitos ("electrones") viajando por
+      esos cables cuando hay carga o descarga.
+  Topologia del circuito: el TEG entrega energia a un regulador de
+  voltaje fijo (REGULATOR_OUT_ANCHOR), el regulador carga la bateria
+  PRINCIPAL (scene.batteries[0], no se puede quitar), y desde esa
+  bateria se alimentan TODAS las farolas y celulares (no directo del
+  TEG). BULB_DRAIN_W=0.02 y PHONE_DRAIN_W=0.15 son el consumo fijo
+  ilustrativo de cada carga.
+
+--------------------------------------------------------------
+BLOQUE 5.12 - Simulacion de carga de bateria (dia completo)
+--------------------------------------------------------------
+  interpolateSeriesPower(hour)  -> interpola la curva real del dia
+                                    (state.daySeries) para cualquier
+                                    hora con decimales.
+  recomputeDayCycle()
+      Simula, en pasos de 15 minutos (DAY_CYCLE_STEP_H = 0.25), como
+      sube y baja la carga de la bateria (en Wh) a lo largo de 24
+      horas: de dia se carga con la energia del TEG (menos el consumo
+      de los celulares, que gastan todo el dia), de noche ademas se
+      resta el consumo de las farolas (isNightHour). Corre el ciclo 8
+      veces seguidas para que el valor de carga al cerrar la vuelta
+      (hora 24) coincida con el de arrancar (hora 0), en vez de tener
+      un salto raro entre un dia y el siguiente.
+  chargeAtHour(hour) / refreshBatteryForHour(hour)
+      Consultan el resultado de recomputeDayCycle() para saber cuanta
+      carga (Wh) tiene la bateria a una hora dada, y actualizan el
+      dibujo (nivel de llenado, brillo de las farolas de noche, textos
+      de tiempo de carga de los celulares).
+  renderBatteryStatus()
+      Arma el texto del "Simulador de carga de bateria": a que
+      porcentaje llega la bateria elegida al anochecer, y cuantas horas
+      dura la carga con las farolas/celulares conectados actualmente.
+
+--------------------------------------------------------------
+BLOQUE 5.13 - Editor de voltaje y alumbrado publico
+--------------------------------------------------------------
+  updateVoltEditor()
+      Con el voltaje de un TEG (state.singleVoltage) y la cantidad de
+      TEG puestos en serie (state.tegSeries, +/- con botones), calcula
+      el voltaje total y compara contra el dispositivo elegido
+      (DEVICES) para decir si alcanza o no, y cuantos TEG mas harian
+      falta.
+  loadRoadScaling() / updateStreetlightCalc()
+      Piden (o calculan localmente, con la misma formula que
+      build_road_scaling() del backend) cuantos kWh/dia generaria 1 km
+      de carretera, y con eso calculan cuantas farolas de X watts,
+      encendidas Y horas por noche, se podrian alimentar.
+
+--------------------------------------------------------------
+BLOQUE 5.14 - Grafico canvas: drawChart()
+--------------------------------------------------------------
+  Dibuja a mano (sin libreria) la curva de potencia del dia sobre un
+  <canvas>, usando state.daySeries (la curva real/backend) como linea
+  de fondo, mas un punto que marca la hora actual. Ese punto usa el
+  valor REAL calculado en ese momento (state.currentData, que ya
+  incluye el ajuste por clima) en vez de re-interpolar la curva fija,
+  para que el punto baje visiblemente si el clima es nublado o
+  lluvioso, aunque la linea de fondo siga mostrando el dia soleado de
+  referencia.
+
+--------------------------------------------------------------
+BLOQUE 5.15 - init() (arranque de la app)
+--------------------------------------------------------------
+  Se ejecuta una sola vez al cargar la pagina: prepara los canvas,
+  llena los selects (dispositivos, baterias), engancha los componentes
+  fijos de la escena (wrapExistingInstances), pide la escala de
+  carretera y la curva del dia, fija la hora inicial en 12:00, calcula
+  el ciclo de bateria, y hace el primer calculo/dibujo.
+
+
+=============================================================
+6) main.py (lanzador de escritorio, raiz del proyecto)
+=============================================================
+  Archivo chico (22 lineas): usa la libreria "pywebview" para abrir
+  ui/index.html dentro de una ventana nativa de 980x620 (el mismo
+  tamano que se uso para probar todos los layouts). NO arranca el
+  backend por su cuenta: si queres datos reales (no solo el calculo
+  local), hay que iniciar "py main.py" dentro de backend/ por separado,
+  ANTES o despues de abrir la ventana.
+
+
+=============================================================
+7) TABLA RESUMEN DE TODAS LAS FORMULAS
+=============================================================
+  Fisica del TEG (backend/teg_engine.py Y ui/index.html, deben
+  coincidir siempre):
+    V   = alpha * (Th - Tc)
+    I   = V / (R_int + R_L)
+    P   = I^2 * R_L
+    Q   = alpha*I*Tc + K*(Th - Tc) - 0.5*I^2*R_L
+    q   = k_cobre * A * deltaT / deltaX          (Fourier, independiente)
+    eta = (P / Q) * 100
+
+  Clima (solo en ui/index.html, ilustrativo, no viene del paper):
+    Th_final = Tc + (Th_soleado - Tc) * factor_clima
+    factor_clima: soleado=1.00, nublado=0.55, lluvioso=0.22
+
+  Economia (solo backend/teg_engine.py):
+    costo_anualizado = costo_capital * (r*(1+r)^n) / ((1+r)^n - 1)
+    LCOE = costo_anualizado / energia_anual_kWh
+
+  Escalado a carretera (backend/teg_engine.py Y ui/index.html):
+    Psm  = P_promedio / Area_placa
+    Pps  = Psm * Area_carretera
+    P_8h = Pps * horas * 3600            (Joules)
+    kWh  = P_8h / 3_600_000
+
+Para el detalle fisico de POR QUE funciona cada una de estas formulas
+(el "cuento" completo, con analogias), ver formulas_explicacion.txt.

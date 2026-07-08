@@ -1,0 +1,321 @@
+ASPHALT-TEG SIMULATOR - COMO SE ESCRIBEN LAS FORMULAS Y LOS ESTILOS
+EN EL CODIGO (explicado bien facil, paso a paso)
+=====================================================================
+
+Este archivo no explica la fisica (eso ya esta en formulas_explicacion.txt)
+ni es un mapa tecnico del proyecto (eso es explicacion_codigo.txt). Este
+archivo explica otra cosa: COMO SE ESCRIBE, LETRA POR LETRA, una formula
+adentro del codigo, y como se le pone "ropa y colores" a cada cosa en la
+pantalla (los estilos). Todo con ejemplos re facil, como para explicarselo
+a un nene chiquito.
+
+
+=====================================================================
+PARTE 1: QUE ES "EL CODIGO", EN VERDAD
+=====================================================================
+Imagina que la computadora es como un robot obediente, pero MUY tonto:
+no entiende nada si no se lo explicas exactamente, paso por paso, sin
+saltarte ni un pasito.
+
+"Escribir codigo" es como escribirle una receta de cocina a ese robot,
+pero una receta re detallada, tipo:
+
+   1. Anda a buscar el numero que esta en la cajita "temperatura caliente"
+   2. Anda a buscar el numero que esta en la cajita "temperatura fria"
+   3. Resta el segundo numero al primero
+   4. Guarda el resultado en una cajita nueva llamada "diferencia"
+
+El robot (la computadora) hace EXACTAMENTE eso, en ese orden, ni una
+cosa mas ni una cosa menos. Todo el archivo ui/index.html y todo el
+archivo teg_engine.py son, ni mas ni menos, recetas larguisimas escritas
+asi, para que el robot sepa como calcular la electricidad del proyecto.
+
+
+=====================================================================
+PARTE 2: LAS CAJITAS CON NOMBRE (esto se llama "variable")
+=====================================================================
+En el codigo, cuando queremos guardar un numero para usarlo despues, le
+ponemos un nombre a una cajita y metemos el numero adentro. A esa cajita
+con nombre se le llama "variable".
+
+En el codigo se ve mas o menos asi:
+
+   const alpha = 0.05;
+
+Esto significa, en criollo: "quiero una cajita que se llame alpha, y
+adentro le pongo el numero 0.05, y prometo que nunca mas voy a cambiar
+lo que hay adentro" (la palabra "const" es de "constante": una cajita
+que no cambia).
+
+En el proyecto de verdad, esa cajita no esta sola: hay un monton de
+cajitas juntas, todas en la misma linea, como si fueran los
+ingredientes de la receta puestos en la mesada antes de empezar a
+cocinar:
+
+   const alpha = 0.05, R = 2, RL = 10, K = 0.6, k = 385, A = 0.10, dx = 0.03;
+
+   >>> DONDE ESTA: archivo ui/index.html, linea 2568 (adentro de la
+       maquinita/funcion llamada calcularLocal; ver Parte 4).
+
+Eso son 7 cajitas de una sola vez: alpha, R, RL, K, k, A y dx, cada una
+con su numero adentro. Son los mismos numeros fisicos que estan
+explicados en formulas_explicacion.txt (el coeficiente Seebeck, las
+resistencias, etc.), solo que aca ya estan escritos como cajitas
+listas para usar.
+
+Ojo: estos MISMOS numeros tambien estan guardados, con otros nombres,
+en el archivo backend/teg_engine.py, lineas 12 a 16 (ALPHA, R_INT,
+R_LOAD, K_TEG, K_COPPER). Es el mismo ingrediente, guardado dos veces
+en dos cocinas distintas (una en Python para el backend, otra en
+JavaScript para cuando no hay backend prendido); por eso en
+explicacion_codigo.txt se avisa que hay que mantener las dos copias
+iguales si algun dia se cambia un numero.
+
+
+=====================================================================
+PARTE 3: COMO METEMOS UNA FORMULA DE VERDAD ADENTRO DEL CODIGO
+=====================================================================
+Ahora la parte importante: como se pasa de una formula de fisica, en un
+papel, a una linea de codigo que la computadora puede calcular.
+
+La formula del voltaje, en el papel, se ve asi:
+
+   V = alpha * (Th - Tc)
+
+Y en el codigo se ve asi:
+
+   const V = alpha * (T_h - T_c);
+
+   >>> DONDE ESTA: archivo ui/index.html, linea 2569.
+
+Miralas una al lado de la otra: son CASI la misma cosa. Vamos a leerla
+de a poquito, como si fueramos deletreando:
+
+   const V  =  ...        -> "quiero una cajita nueva que se llame V"
+   alpha                  -> "anda a buscar el numero que esta guardado
+                              en la cajita alpha" (0.05)
+   *                       -> el asterisco es el simbolo de "multiplicar"
+                              en casi todos los lenguajes de codigo (en
+                              vez del "x" que usamos en la escuela)
+   (T_h - T_c)             -> "resta lo que hay en la cajita T_c a lo que
+                              hay en la cajita T_h"
+   ;                       -> el puntito y coma es como el punto final de
+                              una oracion: le dice al robot "esta
+                              instruccion ya termino, segui con la
+                              siguiente"
+
+Entonces toda la linea dice: "abri una cajita nueva llamada V, y
+guardale adentro el resultado de multiplicar lo que hay en la cajita
+alpha por la resta de lo que hay en las cajitas T_h y T_c". Eso es TODO
+lo que hace esa linea. Ni magia ni nada raro: nada mas mover numeros
+entre cajitas y hacer cuentas, como una calculadora bien ordenada.
+
+Lo lindo es que, una vez que V es una cajita con un numero adentro, la
+podemos volver a usar en la SIGUIENTE formula, como si fuera un
+ingrediente que ya preparamos y ahora usamos en el siguiente paso de la
+receta:
+
+   const I = V / (R + RL);           -> usa la cajita V de arriba
+   const P = I ** 2 * RL * 1000;     -> usa la cajita I de arriba
+   const Q = alpha * I * T_c + K * (T_h - T_c) - 0.5 * I ** 2 * RL;
+   const q = k * A * (T_h - T_c) / dx;
+   const eta = (P / 1000) / Q * 100; -> usa las cajitas P y Q de arriba
+
+   >>> DONDE ESTAN: archivo ui/index.html, lineas 2570 (I), 2571 (P),
+       2572 (Q), 2573 (q) y 2574 (eta) - una abajo de la otra, en ese
+       mismo orden, adentro de calcularLocal.
+
+   >>> LA MISMA CADENA, EN PYTHON: si preferis ver estas mismas 6
+       cuentas del lado del backend (para cuando el navegador si logra
+       conectarse), estan en backend/teg_engine.py, funciones
+       calculate_voltage (linea 56), calculate_current (linea 63),
+       calculate_power (linea 71), calculate_heat (linea 79),
+       calculate_copper_flux (linea 86) y calculate_efficiency (linea
+       94). Es la misma receta, escrita en otro idioma de codigo.
+
+Cada linea es un pasito de la receta, y cada pasito usa lo que ya se
+calculo en el pasito de antes. Por eso en formulas_explicacion.txt se
+dibuja como una cadena:
+
+   Th, Tc  -->  V  -->  I  -->  P
+                          \--> Q --> eta
+
+Esa flechita ("-->") es exactamente esto: cada cajita alimenta a la
+siguiente formula. Un dato curioso: el simbolo "**" en el codigo
+significa "elevado a", entonces "I ** 2" quiere decir "I al cuadrado"
+(I multiplicado por si mismo).
+
+
+=====================================================================
+PARTE 4: LAS "RECETAS REUTILIZABLES" (esto se llama "funcion")
+=====================================================================
+A veces queremos escribir una receta UNA sola vez, y despues poder
+usarla las veces que queramos, cambiando solo los ingredientes. A eso
+se le llama "funcion": es como una maquinita que vos le metes cosas por
+un lado, y por el otro lado te devuelve un resultado, sin que tengas
+que volver a escribir toda la receta cada vez.
+
+En el codigo hay una funcion que hace TODA la cadena de formulas de la
+Parte 3 de una sola vez, para cualquier hora del dia que le pidamos:
+
+   function calcularLocal(hour) {
+     ... (adentro tiene todos los pasitos de la Parte 3) ...
+     return { ...V, I, P, Q, eta... };
+   }
+
+   >>> DONDE ESTA: archivo ui/index.html, linea 2544 (asi empieza la
+       maquinita); termina, con su "return" y todo, en la linea 2594.
+
+"function calcularLocal(hour)" quiere decir: "estoy inventando una
+maquinita nueva que se llama calcularLocal, y le tenes que dar un
+ingrediente que yo voy a llamar hour (la hora del dia)". Adentro, la
+maquinita hace todos los calculos de la Parte 3. Al final, la palabra
+"return" quiere decir "y por aca te devuelvo el resultado, ya
+terminado, para que lo uses afuera".
+
+Despues, en cualquier otra parte del codigo, si necesitamos saber
+cuanta electricidad se genera a las 13 horas, no hace falta reescribir
+toda la receta: alcanza con decirle a la maquinita "dale, calculame la
+hora 13", asi:
+
+   calcularLocal(13)
+
+y la maquinita hace todo el trabajo y devuelve el resultado. Es como
+tener una calculadora ya armada, en vez de tener que apretar todos los
+botones de nuevo cada vez.
+
+   >>> DONDE SE USA DE VERDAD: por ejemplo en la linea 2609 (adentro
+       de otra maquinita, fetchFromBackend, para cuando no hay
+       internet/backend) y en la linea 2745 (adentro de
+       playDaySimulation, que empieza en la linea 2727 y es la que
+       hace la "Simulacion rapida del dia"). Es la MISMA maquinita,
+       llamada desde varios lugares distintos: esa es justamente la
+       ventaja de las funciones.
+
+
+=====================================================================
+PARTE 5: LOS ESTILOS (esto se llama "CSS") - LA ROPA Y LOS COLORES
+=====================================================================
+Todo lo de arriba (Partes 1 a 4) es sobre CALCULAR numeros. Pero
+tambien hay que decirle a la pantalla COMO SE VE cada cosa: de que
+color, de que tamano, redondeado o con esquinas cuadradas, etc. A esa
+parte del codigo se le llama "CSS", y es como elegir la ropa y los
+colores de cada cajita que se dibuja en la pantalla.
+
+Si el HTML (la otra parte del codigo) es como el esqueleto: "aca va un
+titulo, aca va un numero, aca va un boton"... el CSS es la ropa que le
+ponemos a ese esqueleto: "el titulo va en amarillo, el numero va bien
+grande y gordo, el boton tiene las esquinas redonditas".
+
+Un ejemplo de verdad, sacado del proyecto: el numero grande que
+muestra el resultado de cada formula (por ejemplo "-> 2.00 V") tiene
+este estilo:
+
+   .formula-val {
+     font-size: 17px;
+     font-weight: 700;
+     color: var(--good);
+     white-space: nowrap;
+   }
+
+   >>> DONDE ESTA: archivo ui/index.html, linea 707 (adentro del
+       bloque <style> que esta al principio del archivo, mucho antes
+       de las formulas de la Parte 3 - el CSS siempre va aparte,
+       arriba de todo).
+
+Vamos a leerlo de a poquito, como una lista de ordenes de vestimenta:
+
+   .formula-val         -> "estas ordenes son para todas las cositas
+                            que tengan la etiqueta formula-val" (el
+                            numero de resultado de cada formula)
+   font-size: 17px;      -> "el tamano de la letra tiene que ser 17,
+                            (ni mas grande ni mas chico)"
+   font-weight: 700;     -> "la letra tiene que ser GORDA (en negrita)"
+   color: var(--good);   -> "pintala del color que llamamos 'good'"
+                            (que en este proyecto es un verde
+                            brillante, como el semaforo en verde)
+   white-space: nowrap;  -> "no dejes que el texto se corte en dos
+                            renglones, que quede siempre en una sola
+                            linea"
+
+Cada una de esas ordenes termina con punto y coma, igual que las
+formulas: es la manera de decirle al robot "esta orden ya termino,
+segui con la siguiente".
+
+Otro ejemplo, tambien de verdad, del boton de clima cuando esta
+seleccionado (por ejemplo cuando elegis "Lluvioso"):
+
+   .weather-btn.active {
+     border-color: var(--accent);
+     background: rgba(255, 179, 0, 0.12);
+     color: var(--accent);
+   }
+
+   >>> DONDE ESTA: archivo ui/index.html, linea 1031 (tambien en el
+       bloque <style>, un poco mas abajo que el ejemplo anterior).
+
+   border-color: var(--accent);  -> "el bordecito de alrededor,
+                                    pintalo del color 'accent'" (un
+                                    naranja/amarillo, el color
+                                    principal de toda la app)
+   background: rgba(255, 179, 0, 0.12);
+                                  -> "el fondo del boton, pintalo de
+                                    ese mismo naranja pero MUY
+                                    transparente" (el numero 0.12 es
+                                    "casi invisible"; el 1.0 seria
+                                    "totalmente solido")
+   color: var(--accent);         -> "el texto de adentro, tambien
+                                    naranja"
+
+O sea: cuando el boton esta activo, se "pinta" solo (borde y letra
+naranjas, fondo con un toque de naranja bien clarito), para que se note
+de un vistazo cual clima esta elegido, sin tener que leer el texto.
+
+Un ultimo concepto facil: los numeros que dicen "px" (por ejemplo 17px)
+quieren decir "pixeles", que son los puntitos chiquititos con los que
+esta hecha toda pantalla (como si la pantalla fuera un mosaico hecho de
+miles de cuadraditos de colores, y "17px" fuera "17 cuadraditos de
+alto"). Y "rgba(255, 179, 0, 0.12)" es una manera de decir un color
+mezclando tres colores de luz (Rojo, Verde, Azul -> por eso "RGB") mas
+un cuarto numero ("A" de "alpha", que en CSS no tiene nada que ver con
+el alpha de la formula fisica, aunque se llame igual) que dice que tan
+transparente es.
+
+
+=====================================================================
+PARTE 6: TODO JUNTO, EN MODO CUENTO
+=====================================================================
+Repasemos todo el viaje completo, de principio a fin, con un ejemplo
+real: el usuario mueve el sol a la hora 13.
+
+1. El sol se mueve -> el codigo se entera de la nueva hora y la guarda
+   en la cajita state.currentHour (la cajita "hora actual" vive
+   adentro de una cajita mas grande llamada state, declarada en la
+   linea 1521; ahi arranca en 12 por defecto, en la linea 1524, pero
+   se reescribe todo el tiempo, por eso NO es "const"). Quien la
+   reescribe es la funcion setHour, linea 2672 de ui/index.html.
+
+2. Se llama a la maquinita effectiveTh(13) (linea 1682), que calcula
+   que temperatura tiene el asfalto a esa hora (ajustada por el clima
+   elegido), y guarda el resultado en una cajita nueva.
+
+3. Se llama a la maquinita calcularLocal(13) (linea 2544, Parte 4),
+   que agarra esa temperatura y corre TODA la cadena de formulas de la
+   Parte 3 (lineas 2569 a 2574): V, I, P, Q, q, eta, una despues de la
+   otra, cada una usando el resultado de la anterior.
+
+4. Esos resultados se le pasan a otra maquinita, renderFormulas()
+   (linea 2437), que escribe los numeros dentro de las 6 tarjetas de
+   formulas que se ven en pantalla.
+
+5. El CSS (Parte 5, lineas 707 y 1031 son solo dos ejemplos entre
+   muchos) es lo que hace que esas tarjetas se vean prolijas: con su
+   recuadro, su numero grande y verde al final, su letra mas chica
+   para el desglose de la cuenta, y una animacion de "resaltado" que
+   las prende de a una, como si se fueran calculando en vivo.
+
+Eso es todo: cajitas con numeros (variables), recetas que se pueden
+reusar (funciones) que van pasando resultados de una a la siguiente, y
+al final una lista de ordenes de "ropa y colores" (CSS) para que se vea
+bonito en la pantalla. No hay ningun truco escondido: es paso a paso,
+de principio a fin, como una receta bien larga pero bien ordenada.
